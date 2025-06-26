@@ -1,0 +1,8 @@
+<app-volver-atras></app-volver-atras>
+<div class="p-8">
+  <h2 class="text-xl font-semibold mb-4">Seleccione una faena</h2>
+  <select class="w-full border rounded px-3 py-2">
+    <option value="" disabled selected>-- Selecciona una Faena/Proyecto --</option>
+    <option *ngFor="let f of faenas" [value]="f.id">{{ f.name }}</option>
+  </select>
+</div>

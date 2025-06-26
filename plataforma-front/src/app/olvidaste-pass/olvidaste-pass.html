@@ -1,0 +1,172 @@
+<!-- src/app/forgot-password/forgot-password.html -->
+
+<div class="flex min-h-screen items-center justify-center bg-slate-100">
+  <div class="w-full max-w-md rounded-2xl bg-white p-8 shadow-xl">
+    <h1 class="mb-6 text-center text-2xl font-semibold">
+      ¿Olvidaste tu contraseña?
+    </h1>
+
+    <!-- PASO 1 ▸ Correo electrónico ------------------------------------->
+    <form
+      *ngIf="step === 1"
+      [formGroup]="emailForm"
+      (ngSubmit)="sendCode()"
+      class="space-y-6"
+    >
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Email</label>
+        <input
+          formControlName="email"
+          type="email"
+          class="mt-1 w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring"
+        />
+        <p
+          *ngIf="hasError(emailForm,'email','required')"
+          class="mt-1 text-xs text-red-600"
+        >
+          Requerido
+        </p>
+        <p
+          *ngIf="hasError(emailForm,'email','email')"
+          class="mt-1 text-xs text-red-600"
+        >
+          Email inválido
+        </p>
+      </div>
+
+      <button
+        type="submit"
+        [disabled]="emailForm.invalid"
+        class="w-full rounded-lg bg-indigo-600 py-2 font-medium text-white hover:bg-indigo-700 disabled:opacity-40"
+      >
+        Enviar código
+      </button>
+    </form>
+
+    <!-- PASO 2 ▸ Código de verificación --------------------------------->
+    <form
+      *ngIf="step === 2"
+      [formGroup]="codeForm"
+      (ngSubmit)="verifyCode()"
+      class="space-y-6"
+    >
+      <div>
+        <p class="text-sm text-gray-600 mb-2">
+          Hemos enviado un código a <strong>{{ emailForm.value.email }}</strong>.
+          Ingresa el código para continuar.
+        </p>
+        <label class="block text-sm font-medium text-gray-700"
+        >Código de verificación</label
+        >
+        <input
+          formControlName="code"
+          type="text"
+          maxlength="6"
+          class="mt-1 w-full rounded-lg border px-3 py-2 text-center tracking-widest focus:outline-none focus:ring"
+        />
+        <p
+          *ngIf="hasError(codeForm,'code','required')"
+          class="mt-1 text-xs text-red-600"
+        >
+          Requerido
+        </p>
+      </div>
+
+      <button
+        type="submit"
+        [disabled]="codeForm.invalid"
+        class="w-full rounded-lg bg-indigo-600 py-2 font-medium text-white hover:bg-indigo-700 disabled:opacity-40"
+      >
+        Verificar código
+      </button>
+
+      <button
+        type="button"
+        class="w-full text-center text-sm text-indigo-600 hover:underline"
+        (click)="resendCode()"
+      >
+        Reenviar código
+      </button>
+    </form>
+
+    <!-- PASO 3 ▸ Nueva contraseña --------------------------------------->
+    <form
+      *ngIf="step === 3"
+      [formGroup]="passwordForm"
+      (ngSubmit)="resetPassword()"
+      class="space-y-6"
+    >
+      <div>
+        <label class="block text-sm font-medium text-gray-700"
+        >Nueva contraseña</label
+        >
+        <input
+          [attr.type]="hide ? 'password' : 'text'"
+          formControlName="password"
+          class="mt-1 w-full rounded-lg border px-3 py-2 pr-10 focus:outline-none focus:ring"
+        />
+
+        <button
+          type="button"
+          (click)="hide = !hide"
+          class="absolute right-3 top-[43px] text-gray-500"
+        >
+          <lucide-icon [img]="EyeOff" *ngIf="hide" class="w-5 h-5"></lucide-icon>
+          <lucide-icon [img]="Eye" *ngIf="!hide" class="w-5 h-5"></lucide-icon>
+        </button>
+
+        <p
+          *ngIf="hasError(passwordForm,'password','required')"
+          class="mt-1 text-xs text-red-600"
+        >
+          Requerida
+        </p>
+        <p
+          *ngIf="hasError(passwordForm,'password','minlength')"
+          class="mt-1 text-xs text-red-600"
+        >
+          Mínimo 6 caracteres
+        </p>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700"
+        >Confirmar contraseña</label
+        >
+        <input
+          [attr.type]="hide ? 'password' : 'text'"
+          formControlName="confirm"
+          class="mt-1 w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring"
+        />
+        <p
+          *ngIf="passwordForm.hasError('mismatch') && passwordForm.touched"
+          class="mt-1 text-xs text-red-600"
+        >
+          Las contraseñas no coinciden
+        </p>
+      </div>
+
+      <button
+        type="submit"
+        [disabled]="passwordForm.invalid"
+        class="w-full rounded-lg bg-indigo-600 py-2 font-medium text-white hover:bg-indigo-700 disabled:opacity-40"
+      >
+        Guardar contraseña
+      </button>
+    </form>
+
+    <!-- Mensaje de éxito ------------------------------------------------->
+    <div
+      *ngIf="step === 4"
+      class="space-y-4 text-center text-green-700"
+    >
+      <p class="text-lg font-semibold">¡Contraseña actualizada!</p>
+      <button
+        class="rounded-lg bg-indigo-600 px-4 py-2 font-medium text-white hover:bg-indigo-700"
+        (click)="router.navigate(['/login'])"
+      >
+        Volver a iniciar sesión
+      </button>
+    </div>
+  </div>
+</div>

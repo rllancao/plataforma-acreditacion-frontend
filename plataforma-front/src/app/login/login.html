@@ -1,0 +1,70 @@
+<div class="flex min-h-screen items-center justify-center ">
+  <div class="w-full max-w-sm rounded-2xl bg-white p-8 shadow-xl">
+    <h1 class="mb-6 text-center text-2xl text-black font-semibold">Iniciar sesión</h1>
+
+    <form [formGroup]="form" (ngSubmit)="submit()" class="space-y-4">
+      <!-- email -->
+      <div>
+        <label class="mb-1 block text-sm font-medium text-gray-700"
+        >Email</label
+        >
+        <input
+          formControlName="email"
+          type="email"
+          class="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-indigo-500 focus:outline-none focus:ring"
+        />
+
+        <p *ngIf="hasError('email', 'required')" class="mt-1 text-xs text-red-600">
+          Requerido
+        </p>
+        <p *ngIf="hasError('email', 'email')" class="mt-1 text-xs text-red-600">
+          Email inválido
+        </p>
+      </div>
+
+      <!-- password -->
+      <div>
+        <label class="mb-1 block text-sm font-medium text-gray-700">Contraseña</label>
+        <div class="relative">
+          <input
+            [type]="hide ? 'password' : 'text'"
+            formControlName="password"
+            class="w-full rounded-lg border border-gray-300 px-3 py-2 pr-10 focus:border-indigo-500 focus:outline-none focus:ring"
+          />
+          <button
+            type="button"
+            (click)="hide = !hide"
+            class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500"
+          >
+            <!-- Iconos SVG inyectados -->
+            <lucide-icon
+              *ngIf="hide"
+              [img]="EyeOff"
+              class="w-5 h-5"
+            ></lucide-icon>
+            <lucide-icon
+              *ngIf="!hide"
+              [img]="Eye"
+              class="w-5 h-5"
+            ></lucide-icon>
+          </button>
+        </div>
+      </div>
+
+      <!-- feedback -->
+      <p *ngIf="errorMsg" class="text-center text-sm text-red-600">
+        {{ errorMsg }}
+      </p>
+
+      <button
+        class="w-full rounded-lg bg-indigo-600 py-2 font-medium text-white hover:bg-indigo-700 disabled:opacity-40"
+        [disabled]="form.invalid"
+      >
+        Entrar
+      </button>
+      <div class="text-center text-sm text-gray-600">
+        <a href="/olvidaste-pass" class="hover:underline">¿Olvidaste tu contraseña?</a>
+      </div>
+    </form>
+  </div>
+</div>
