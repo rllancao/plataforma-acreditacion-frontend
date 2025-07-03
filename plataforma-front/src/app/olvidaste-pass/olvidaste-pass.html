@@ -156,17 +156,20 @@
     </form>
 
     <!-- Mensaje de éxito ------------------------------------------------->
-    <div
-      *ngIf="step === 4"
-      class="space-y-4 text-center text-green-700"
-    >
-      <p class="text-lg font-semibold">¡Contraseña actualizada!</p>
-      <button
-        class="rounded-lg bg-indigo-600 px-4 py-2 font-medium text-white hover:bg-indigo-700"
-        (click)="router.navigate(['/login'])"
+    <div *ngIf="step === 4" class="text-center">
+      <h2 class="text-xl font-semibold text-green-600">¡Contraseña actualizada!</h2>
+      <p class="mt-2 text-gray-700">Tu contraseña ha sido cambiada exitosamente.</p>
+
+      <p class="mt-4 text-gray-700">
+        Ahora puedes volver e iniciar sesión con tus nuevas credenciales.
+      </p>
+
+      <a
+        [routerLink]="['/login']"
+        class="mt-6 inline-block w-full rounded-lg bg-indigo-600 py-2 font-medium text-white hover:bg-indigo-700"
       >
-        Volver a iniciar sesión
-      </button>
+        Volver a Iniciar Sesión
+      </a>
     </div>
   </div>
 </div>

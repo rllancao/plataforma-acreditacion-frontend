@@ -10,6 +10,8 @@ import {
 } from '@angular/forms';
 import { CommonModule }   from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
+import { ChangeDetectorRef } from '@angular/core';
+import { ResetPassService } from '../services/reset-password'; // Asegúrate de tener este servicio
 
 import { LucideAngularModule } from 'lucide-angular';
 import { Eye, EyeOff }         from 'lucide-angular';
@@ -39,12 +41,13 @@ export class OlvidastePass {
 
   step = 1;                  // 1: email • 2: código • 3: nueva pass • 4: éxito
   hide = true;
+  errorMsg = '';            // Mensaje de error para mostrar en el template
 
   emailForm: FormGroup;
   codeForm: FormGroup;
   passwordForm: FormGroup;
 
-  constructor(private fb: FormBuilder, public router: Router) {
+  constructor(private fb: FormBuilder, public router: Router,private cd: ChangeDetectorRef, private resetPassService: ResetPassService) {
     this.emailForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
     });
@@ -95,9 +98,27 @@ export class OlvidastePass {
       this.passwordForm.markAllAsTouched();
       return;
     }
-    // TODO: Llamar API → actualizar contraseña
-    console.log('Contraseña cambiada');
-    this.step = 4;
+
+    this.errorMsg = ''; // Limpia errores previos
+
+    const email = this.emailForm.value.email;
+    const newPassword = this.passwordForm.value.password;
+
+    this.resetPassService.resetPassword(email, newPassword).subscribe({
+      next: () => {
+        console.log('Contraseña cambiada exitosamente');
+        this.step = 4;
+
+        // ✅ ¡CORRECCIÓN!
+        // Forzamos la detección de cambios para que la vista se actualice al paso 4.
+        this.cd.detectChanges();
+      },
+      error: (err) => {
+        console.error(err);
+        this.errorMsg = 'No se pudo actualizar la contraseña. Inténtalo de nuevo.';
+        this.cd.detectChanges();
+      },
+    });
   }
 
   /* ───────────── Helpers de errores en template ─────── */
