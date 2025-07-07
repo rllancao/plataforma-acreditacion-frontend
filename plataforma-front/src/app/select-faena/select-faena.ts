@@ -1,25 +1,26 @@
-// src/app/select-faena/select-faena.component.ts
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ArrowLeft } from 'lucide-angular'
+import { RouterModule } from '@angular/router';
+import { Observable } from 'rxjs';
+import { Faena, FaenaService } from '../services/faena'; // 1. Importar
+import { VolverAtras } from '../volver-atras/volver-atras';
 import { LucideAngularModule } from 'lucide-angular';
-import {VolverAtras} from '../volver-atras/volver-atras';
-
 
 @Component({
   selector: 'app-select-faena',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule, VolverAtras],
+  imports: [CommonModule, RouterModule, LucideAngularModule, VolverAtras],
   templateUrl: './select-faena.html'
 })
-export class SelectFaena {
+export class SelectFaena implements OnInit {
+  // 2. La propiedad ahora será un Observable
+  faenas$!: Observable<Faena[]>;
 
-  goBack = () => history.back();
-  faenas = [
-    { id: 'f1', name: 'Faena Salar La Isla' },
-    { id: 'f2', name: 'Blanco Litio Norte' },
-    { id: 'f3', name: 'Faena Planta Química Río Seco' },
-    { id: 'f4', name: 'Explotación Salar El Milagro' },
-    { id: 'f5', name: 'Campamento Minero Laguna Verde'},
-  ];
+  // 3. Inyectar el servicio
+  constructor(private faenaService: FaenaService) {}
+
+  ngOnInit(): void {
+    // 4. Llamar al servicio para obtener los datos
+    this.faenas$ = this.faenaService.getFaenas();
+  }
 }

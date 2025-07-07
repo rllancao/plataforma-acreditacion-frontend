@@ -7,155 +7,177 @@
     </h1>
 
     <!-- PASO 1 ▸ Correo electrónico ------------------------------------->
-    <form
-      *ngIf="step === 1"
-      [formGroup]="emailForm"
-      (ngSubmit)="sendCode()"
-      class="space-y-6"
-    >
-      <div>
-        <label class="block text-sm font-medium text-gray-700">Email</label>
-        <input
-          formControlName="email"
-          type="email"
-          class="mt-1 w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring"
-        />
-        <p
-          *ngIf="hasError(emailForm,'email','required')"
-          class="mt-1 text-xs text-red-600"
-        >
-          Requerido
-        </p>
-        <p
-          *ngIf="hasError(emailForm,'email','email')"
-          class="mt-1 text-xs text-red-600"
-        >
-          Email inválido
-        </p>
-      </div>
-
-      <button
-        type="submit"
-        [disabled]="emailForm.invalid"
-        class="w-full rounded-lg bg-indigo-600 py-2 font-medium text-white hover:bg-indigo-700 disabled:opacity-40"
+    <div *ngIf="step === 1">
+      <form
+        [formGroup]="emailForm"
+        (ngSubmit)="sendCode()"
+        class="space-y-6"
       >
-        Enviar código
-      </button>
-    </form>
-
-    <!-- PASO 2 ▸ Código de verificación --------------------------------->
-    <form
-      *ngIf="step === 2"
-      [formGroup]="codeForm"
-      (ngSubmit)="verifyCode()"
-      class="space-y-6"
-    >
-      <div>
-        <p class="text-sm text-gray-600 mb-2">
-          Hemos enviado un código a <strong>{{ emailForm.value.email }}</strong>.
-          Ingresa el código para continuar.
-        </p>
-        <label class="block text-sm font-medium text-gray-700"
-        >Código de verificación</label
-        >
-        <input
-          formControlName="code"
-          type="text"
-          maxlength="6"
-          class="mt-1 w-full rounded-lg border px-3 py-2 text-center tracking-widest focus:outline-none focus:ring"
-        />
-        <p
-          *ngIf="hasError(codeForm,'code','required')"
-          class="mt-1 text-xs text-red-600"
-        >
-          Requerido
-        </p>
-      </div>
-
-      <button
-        type="submit"
-        [disabled]="codeForm.invalid"
-        class="w-full rounded-lg bg-indigo-600 py-2 font-medium text-white hover:bg-indigo-700 disabled:opacity-40"
-      >
-        Verificar código
-      </button>
-
-      <button
-        type="button"
-        class="w-full text-center text-sm text-indigo-600 hover:underline"
-        (click)="resendCode()"
-      >
-        Reenviar código
-      </button>
-    </form>
-
-    <!-- PASO 3 ▸ Nueva contraseña --------------------------------------->
-    <form
-      *ngIf="step === 3"
-      [formGroup]="passwordForm"
-      (ngSubmit)="resetPassword()"
-      class="space-y-6"
-    >
-      <div>
-        <label class="block text-sm font-medium text-gray-700"
-        >Nueva contraseña</label
-        >
-        <input
-          [attr.type]="hide ? 'password' : 'text'"
-          formControlName="password"
-          class="mt-1 w-full rounded-lg border px-3 py-2 pr-10 focus:outline-none focus:ring"
-        />
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Email</label>
+          <input
+            formControlName="email"
+            type="email"
+            class="mt-1 w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring"
+          />
+          <p
+            *ngIf="hasError(emailForm,'email','required')"
+            class="mt-1 text-xs text-red-600"
+          >
+            Requerido
+          </p>
+          <p
+            *ngIf="hasError(emailForm,'email','email')"
+            class="mt-1 text-xs text-red-600"
+          >
+            Email inválido
+          </p>
+        </div>
 
         <button
-          type="button"
-          (click)="hide = !hide"
-          class="absolute right-3 top-[43px] text-gray-500"
+          type="submit"
+          [disabled]="emailForm.invalid"
+          class="w-full rounded-lg bg-indigo-600 py-2 font-medium text-white hover:bg-indigo-700 disabled:opacity-40"
         >
-          <lucide-icon [img]="EyeOff" *ngIf="hide" class="w-5 h-5"></lucide-icon>
-          <lucide-icon [img]="Eye" *ngIf="!hide" class="w-5 h-5"></lucide-icon>
+          Enviar código
         </button>
+      </form>
+    </div>
 
-        <p
-          *ngIf="hasError(passwordForm,'password','required')"
-          class="mt-1 text-xs text-red-600"
-        >
-          Requerida
-        </p>
-        <p
-          *ngIf="hasError(passwordForm,'password','minlength')"
-          class="mt-1 text-xs text-red-600"
-        >
-          Mínimo 6 caracteres
-        </p>
-      </div>
+    <!-- PASO 2 ▸ Código de verificación --------------------------------->
+    <div *ngIf="step === 2">
+      <p class="text-center text-sm text-gray-600">
+        Hemos enviado un código a <strong>{{ emailForm.value.email }}</strong>.
+        Ingresa el código para continuar.
+      </p>
 
-      <div>
-        <label class="block text-sm font-medium text-gray-700"
-        >Confirmar contraseña</label
-        >
-        <input
-          [attr.type]="hide ? 'password' : 'text'"
-          formControlName="confirm"
-          class="mt-1 w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring"
-        />
-        <p
-          *ngIf="passwordForm.hasError('mismatch') && passwordForm.touched"
-          class="mt-1 text-xs text-red-600"
-        >
-          Las contraseñas no coinciden
-        </p>
-      </div>
+      <!-- Mensajes de Feedback -->
+      <p *ngIf="successMsg" class="mt-4 text-center text-sm text-green-600">
+        {{ successMsg }}
+      </p>
+      <p *ngIf="errorMsg" class="mt-4 text-center text-sm text-red-600">
+        {{ errorMsg }}
+      </p>
 
-      <button
-        type="submit"
-        [disabled]="passwordForm.invalid"
-        class="w-full rounded-lg bg-indigo-600 py-2 font-medium text-white hover:bg-indigo-700 disabled:opacity-40"
+      <form
+        [formGroup]="codeForm"
+        (ngSubmit)="verifyCode()"
+        class="mt-4 space-y-6"
       >
-        Guardar contraseña
-      </button>
-    </form>
+        <div>
+          <label class="block text-sm font-medium text-gray-700"
+          >Código de verificación</label
+          >
+          <input
+            formControlName="code"
+            type="text"
+            maxlength="6"
+            class="mt-1 w-full rounded-lg border px-3 py-2 text-center tracking-widest focus:outline-none focus:ring"
+          />
+          <p
+            *ngIf="hasError(codeForm,'code','required')"
+            class="mt-1 text-xs text-red-600"
+          >
+            Requerido
+          </p>
+        </div>
 
-    <!-- Mensaje de éxito ------------------------------------------------->
+        <div class="flex flex-col space-y-2">
+          <button
+            type="submit"
+            [disabled]="codeForm.invalid"
+            class="w-full rounded-lg bg-indigo-600 py-2 font-medium text-white hover:bg-indigo-700 disabled:opacity-40"
+          >
+            Verificar código
+          </button>
+
+          <button
+            type="button"
+            class="w-full text-center text-sm text-indigo-600 hover:underline"
+            (click)="resendCode()"
+          >
+            Reenviar código
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- PASO 3 ▸ Nueva contraseña --------------------------------------->
+    <div *ngIf="step === 3">
+      <!-- Mensajes de Feedback -->
+      <p *ngIf="successMsg" class="mb-4 text-center text-sm text-green-600">
+        {{ successMsg }}
+      </p>
+      <p *ngIf="errorMsg" class="mb-4 text-center text-sm text-red-600">
+        {{ errorMsg }}
+      </p>
+
+      <form
+        [formGroup]="passwordForm"
+        (ngSubmit)="resetPassword()"
+        class="space-y-6"
+      >
+        <div class="relative">
+          <label class="block text-sm font-medium text-gray-700"
+          >Nueva contraseña</label
+          >
+          <input
+            [type]="hide ? 'password' : 'text'"
+            formControlName="password"
+            class="mt-1 w-full rounded-lg border px-3 py-2 pr-10 focus:outline-none focus:ring"
+          />
+
+          <button
+            type="button"
+            (click)="hide = !hide"
+            class="absolute right-3 top-[34px] text-gray-500"
+          >
+            <lucide-icon [img]="EyeOff" *ngIf="hide" class="w-5 h-5"></lucide-icon>
+            <lucide-icon [img]="Eye" *ngIf="!hide" class="w-5 h-5"></lucide-icon>
+          </button>
+
+          <p
+            *ngIf="hasError(passwordForm,'password','required')"
+            class="mt-1 text-xs text-red-600"
+          >
+            Requerida
+          </p>
+          <p
+            *ngIf="hasError(passwordForm,'password','minlength')"
+            class="mt-1 text-xs text-red-600"
+          >
+            Mínimo 6 caracteres
+          </p>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700"
+          >Confirmar contraseña</label
+          >
+          <input
+            [type]="hide ? 'password' : 'text'"
+            formControlName="confirm"
+            class="mt-1 w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring"
+          />
+          <p
+            *ngIf="passwordForm.hasError('mismatch') && passwordForm.get('confirm')?.touched"
+            class="mt-1 text-xs text-red-600"
+          >
+            Las contraseñas no coinciden
+          </p>
+        </div>
+
+        <button
+          type="submit"
+          [disabled]="passwordForm.invalid"
+          class="w-full rounded-lg bg-indigo-600 py-2 font-medium text-white hover:bg-indigo-700 disabled:opacity-40"
+        >
+          Guardar contraseña
+        </button>
+      </form>
+    </div>
+
+    <!-- PASO 4 ▸ Mensaje de éxito ------------------------------------------------->
     <div *ngIf="step === 4" class="text-center">
       <h2 class="text-xl font-semibold text-green-600">¡Contraseña actualizada!</h2>
       <p class="mt-2 text-gray-700">Tu contraseña ha sido cambiada exitosamente.</p>

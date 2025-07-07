@@ -18,6 +18,13 @@ export class ResetPassService {
    * @param email - El email del usuario para identificarlo en la URL.
    * @param newPassword - La nueva contraseña que se enviará en el cuerpo de la petición.
    */
+  sendCode(email: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/auth/forgot-password`, { email });
+  }
+
+  verifyCode(email: string, code: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/auth/verify-code`, { email, code });
+  }
   resetPassword(email: string, newPassword: string): Observable<any> {
     // ✅ CORRECCIÓN: Construimos la URL correcta incluyendo el email del usuario.
     const resetPasswordUrl = `${this.apiUrl}/usuario/${email}`;
