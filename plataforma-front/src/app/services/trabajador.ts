@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import {environment} from '../../environments/environment.prod';
 
 // --- Interfaces para un tipado fuerte y claro ---
 
@@ -44,7 +45,7 @@ export interface Trabajador {
   providedIn: 'root'
 })
 export class TrabajadorService {
-  private readonly apiUrl = 'http://localhost:8000/trabajadores';
+  private readonly apiUrl = environment.apiUrl;
 
   constructor(private http: HttpClient) { }
 
