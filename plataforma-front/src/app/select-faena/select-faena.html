@@ -1,8 +1,22 @@
-<app-volver-atras></app-volver-atras>
-<div class="p-8">
-  <h2 class="text-xl font-semibold mb-4">Seleccione una faena</h2>
-  <select class="w-full border rounded px-3 py-2">
-    <option value="" disabled selected>-- Selecciona una Faena/Proyecto --</option>
-    <option *ngFor="let f of faenas" [value]="f.id">{{ f.name }}</option>
-  </select>
+<div class="flex min-h-screen flex-col bg-slate-100">
+  <header class="flex items-center p-4">
+    <!-- ✅ Le pasamos la ruta personalizada al componente -->
+    <app-volver-atras [customBackLink]="['/login']"></app-volver-atras>
+  </header>
+
+  <main class="flex flex-col items-center p-8">
+    <h1 class="text-3xl font-bold text-gray-800">Seleccionar Faena</h1>
+    <p class="mt-2 text-gray-600">Elige una faena para ver su panel de control.</p>
+
+    <div class="mt-8 grid w-full max-w-4xl gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <a
+        *ngFor="let faena of faenas$ | async"
+        [routerLink]="['/dashboard', faena.id]"
+        class="block transform rounded-lg bg-white p-6 shadow transition hover:-translate-y-1 hover:shadow-lg"
+      >
+        <h3 class="text-lg font-semibold text-indigo-700">{{ faena.nombre }}</h3>
+        <p class="mt-2 text-sm text-gray-500">Ver panel de control →</p>
+      </a>
+    </div>
+  </main>
 </div>

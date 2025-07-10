@@ -1,0 +1,88 @@
+<div class="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8">
+  <header class="mb-8 flex items-center">
+    <app-volver-atras></app-volver-atras>
+  </header>
+
+  <main *ngIf="trabajador$ | async as trabajador; else loading">
+    <!-- ✅ Se cambió max-w-4xl por max-w-5xl para hacer la tarjeta más ancha -->
+    <div class="mx-auto max-w-5xl rounded-lg bg-white p-8 shadow-md">
+      <div class="flex flex-col items-center border-b pb-6 sm:flex-row">
+        <div class="text-center sm:text-left">
+          <h1 class="text-3xl font-bold text-gray-900">{{ trabajador.nombre }}</h1>
+          <p class="text-lg text-indigo-600">{{ trabajador.cargo }}</p>
+        </div>
+      </div>
+
+      <div class="mt-6 grid grid-cols-1 gap-x-4 gap-y-8 md:grid-cols-2">
+        <!-- Columna 1: Datos Personales -->
+        <div class="space-y-4">
+          <h3 class="text-lg font-semibold text-gray-700">Información Personal</h3>
+          <div>
+            <dt class="text-sm font-medium text-gray-500">RUT / Pasaporte</dt>
+            <dd class="mt-1 text-sm text-gray-900">{{ trabajador.rut_pasaporte }}</dd>
+          </div>
+          <div>
+            <dt class="text-sm font-medium text-gray-500">Email</dt>
+            <dd class="mt-1 text-sm text-gray-900">{{ trabajador.email }}</dd>
+          </div>
+          <div>
+            <dt class="text-sm font-medium text-gray-500">Teléfono</dt>
+            <dd class="mt-1 text-sm text-gray-900">{{ trabajador.telefono }}</dd>
+          </div>
+          <div>
+            <dt class="text-sm font-medium text-gray-500">Fecha de Nacimiento</dt>
+            <dd class="mt-1 text-sm text-gray-900">{{ trabajador.fecha_nacimiento | date:'dd/MM/yyyy' }} ({{ trabajador.edad }} años)</dd>
+          </div>
+          <!-- ✅ CAMPO AÑADIDO: Género -->
+          <div>
+            <dt class="text-sm font-medium text-gray-500">Género</dt>
+            <dd class="mt-1 text-sm text-gray-900">{{ trabajador.genero }}</dd>
+          </div>
+          <div>
+            <dt class="text-sm font-medium text-gray-500">Dirección</dt>
+            <dd class="mt-1 text-sm text-gray-900">{{ trabajador.direccion }}</dd>
+          </div>
+        </div>
+
+        <!-- Columna 2: Datos Laborales y de Evaluación -->
+        <div class="space-y-4">
+          <h3 class="text-lg font-semibold text-gray-700">Información Laboral</h3>
+          <div>
+            <dt class="text-sm font-medium text-gray-500">Empresa</dt>
+            <dd class="mt-1 text-sm text-gray-900">{{ trabajador.faenaRelacion.usuario.nombre || 'No asignada' }}</dd>
+          </div>
+          <div>
+            <dt class="text-sm font-medium text-gray-500">Faena</dt>
+            <dd class="mt-1 text-sm text-gray-900">{{ trabajador.faenaRelacion.nombre || 'No asignada' }}</dd>
+          </div>
+          <div>
+            <dt class="text-sm font-medium text-gray-500">Ciudad de la Faena</dt>
+            <dd class="mt-1 text-sm text-gray-900">{{ trabajador.faenaRelacion.ciudad || 'No asignada' }}</dd>
+          </div>
+          <h3 class="mt-6 text-lg font-semibold text-gray-700">Detalles de Evaluación</h3>
+          <div>
+            <dt class="text-sm font-medium text-gray-500">Tipo de Evaluación</dt>
+            <dd class="mt-1 text-sm text-gray-900">{{ trabajador.tipo_evaluacion }}</dd>
+          </div>
+          <div>
+            <dt class="text-sm font-medium text-gray-500">Sede</dt>
+            <dd class="mt-1 text-sm text-gray-900">{{ trabajador.sede_evaluacion }}</dd>
+          </div>
+          <div>
+            <dt class="text-sm font-medium text-gray-500">Fecha de Atención</dt>
+            <dd class="mt-1 text-sm text-gray-900">{{ trabajador.fecha_atencion | date:'dd/MM/yyyy' }}</dd>
+          </div>
+          <!-- ✅ CAMPO AÑADIDO: Fecha de Informe -->
+          <div>
+            <dt class="text-sm font-medium text-gray-500">Fecha de Informe</dt>
+            <dd class="mt-1 text-sm text-gray-900">{{ trabajador.fecha_informe | date:'dd/MM/yyyy' }}</dd>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <ng-template #loading>
+    <p class="text-center text-gray-500">Cargando detalles del trabajador...</p>
+  </ng-template>
+</div>

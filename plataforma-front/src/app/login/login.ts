@@ -1,52 +1,32 @@
-// src/app/login/login.component.ts
-import { Component } from '@angular/core';
-import {
-  FormBuilder,
-  FormGroup,
-  Validators,
-  ReactiveFormsModule,
-} from '@angular/forms';
+// 1. Importa ChangeDetectorRef
+import { Component, ChangeDetectorRef } from '@angular/core';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { RouterModule } from '@angular/router';
-
-
-// Importa el módulo y los iconos
-import { LucideAngularModule } from 'lucide-angular';
-import { Eye, EyeOff } from 'lucide-angular';
-
+import { LucideAngularModule, Eye, EyeOff } from 'lucide-angular';
+import { AuthService } from '../services/auth';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    LucideAngularModule,      // todo el módulo, sin pick()
-  ],
+  imports: [ CommonModule, ReactiveFormsModule, LucideAngularModule ],
   templateUrl: './login.html',
   styleUrls: ['./login.scss'],
 })
 export class Login {
-  // Exponemos los iconos para usarlos con [img]
   readonly Eye = Eye;
   readonly EyeOff = EyeOff;
-
-
-
-
 
   hide = true;
   form: FormGroup;
   errorMsg = '';
-  // Credenciales de ejemplo para el administrador
 
-  private readonly adminCreds = {
-    email: 'admin@demo.local',
-    password: '123456',
-  };
-
-  constructor(private fb: FormBuilder,private router: Router) {
+  constructor(
+    private fb: FormBuilder,
+    private router: Router,
+    private authService: AuthService,
+    private cd: ChangeDetectorRef // 2. Inyéctalo en el constructor
+  ) {
     this.form = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(4)]],
@@ -58,12 +38,19 @@ export class Login {
       this.form.markAllAsTouched();
       return;
     }
-    const { email, password } = this.form.value;
-    if (email === 'admin@demo.local' && password === '123456') {
-      this.router.navigate(['/select-faena']);   // redirige
-    } else {
-      alert('Credenciales incorrectas');
-    }
+
+    this.errorMsg = '';
+
+    this.authService.login(this.form.value).subscribe({
+      next: () => {
+        this.router.navigate(['/select-faena']);
+      },
+      error: (err) => {
+        this.errorMsg = 'El correo o la contraseña son incorrectos.';
+        // 3. Llama a detectChanges() para forzar la actualización de la vista
+        this.cd.detectChanges();
+      }
+    });
   }
 
   hasError(field: string, error: string) {
