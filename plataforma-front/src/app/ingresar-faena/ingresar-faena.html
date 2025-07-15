@@ -1,0 +1,55 @@
+<div class="min-h-screen bg-gray-100 p-8">
+  <header class="mb-8 flex items-center">
+    <app-volver-atras></app-volver-atras>
+    <h1 class="ml-4 text-3xl font-bold text-gray-800">Ingresar Nueva Faena</h1>
+  </header>
+
+  <form [formGroup]="faenaForm" (ngSubmit)="onSubmit()" class="mx-auto max-w-4xl space-y-8">
+    <!-- Datos Básicos de la Faena -->
+    <div class="rounded-lg bg-white p-6 shadow-md">
+      <h2 class="text-xl font-semibold">Información General</h2>
+      <div class="mt-4 grid grid-cols-1 gap-6 md:grid-cols-2">
+        <div>
+          <label class="block text-sm font-medium">Nombre de la Faena</label>
+          <input formControlName="nombre" type="text" class="mt-1 w-full rounded-md border-gray-300">
+        </div>
+        <div>
+          <label class="block text-sm font-medium">Ciudad</label>
+          <input formControlName="ciudad" type="text" class="mt-1 w-full rounded-md border-gray-300">
+        </div>
+        <!-- ✅ Selector de Empresa Añadido -->
+        <div class="md:col-span-2">
+          <label for="empresa" class="block text-sm font-medium">Asignar a Empresa</label>
+          <select formControlName="usuarioId" id="empresa" class="mt-1 block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm">
+            <option value="" disabled>Seleccione una empresa...</option>
+            <option *ngFor="let empresa of empresas$ | async" [value]="empresa.id">{{ empresa.nombre }}</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Requisitos de Documentación -->
+    <div class="rounded-lg bg-white p-6 shadow-md">
+      <h2 class="text-xl font-semibold">Requisitos de Documentación</h2>
+      <p class="text-sm text-gray-500">Selecciona todos los documentos que serán requeridos para los trabajadores de esta faena.</p>
+      <div formArrayName="requisitos" class="mt-4 space-y-6">
+        <div *ngFor="let seccion of seccionesRequisitos; let seccionIndex = index" class="border-t pt-4 first:border-t-0 first:pt-0">
+          <h3 class="font-medium text-gray-900">{{ seccion.nombre }}</h3>
+          <div class="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            <label *ngFor="let doc of seccion.documentos; let docIndex = index" class="flex items-center space-x-3 rounded-md p-2 hover:bg-gray-50">
+              <input type="checkbox" [formControlName]="getFormControlIndex(seccionIndex, docIndex)" class="h-4 w-4 rounded border-gray-300 text-indigo-600">
+              <span class="text-sm text-gray-700">{{ doc.nombre }}</span>
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Botón de Envío -->
+    <div class="flex justify-end">
+      <button type="submit" [disabled]="faenaForm.invalid" class="rounded-lg bg-indigo-600 px-8 py-3 font-medium text-white hover:bg-indigo-700 disabled:opacity-50">
+        Crear Faena
+      </button>
+    </div>
+  </form>
+</div>

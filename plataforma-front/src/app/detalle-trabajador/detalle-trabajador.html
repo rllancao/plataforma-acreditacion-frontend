@@ -1,88 +1,91 @@
-<div class="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8">
-  <header class="mb-8 flex items-center">
+<div class="min-h-screen bg-gray-100">
+  <header class="flex items-center p-4 sm:p-6 lg:p-8">
     <app-volver-atras></app-volver-atras>
   </header>
 
-  <main *ngIf="trabajador$ | async as trabajador; else loading">
-    <!-- ✅ Se cambió max-w-4xl por max-w-5xl para hacer la tarjeta más ancha -->
-    <div class="mx-auto max-w-5xl rounded-lg bg-white p-8 shadow-md">
-      <div class="flex flex-col items-center border-b pb-6 sm:flex-row">
-        <div class="text-center sm:text-left">
-          <h1 class="text-3xl font-bold text-gray-900">{{ trabajador.nombre }}</h1>
-          <p class="text-lg text-indigo-600">{{ trabajador.cargo }}</p>
+  <!-- Contenedor principal de la grilla -->
+  <div *ngIf="trabajador; else loading" class="grid grid-cols-1 gap-8 px-4 pb-8 sm:px-6 lg:grid-cols-5 lg:px-8">
+
+    <!-- Columna Izquierda (Detalles y Gráfico) -->
+    <div class="space-y-8 lg:col-span-2">
+      <!-- Card de Detalles del Trabajador -->
+      <div class="rounded-lg bg-white p-6 shadow-md">
+        <div class="border-b pb-4 text-center">
+          <h1 class="text-2xl font-bold text-gray-900">{{ trabajador.nombre }}</h1>
+          <p class="text-md text-indigo-600">{{ trabajador.cargo }}</p>
+        </div>
+        <div class="mt-6 grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
+          <!-- Datos Personales -->
+          <div class="space-y-4">
+            <h3 class="text-md font-semibold text-gray-700">Información Personal</h3>
+            <div><dt class="text-xs font-medium text-gray-500">RUT / Pasaporte</dt><dd class="text-sm text-gray-900">{{ trabajador.rut_pasaporte }}</dd></div>
+            <div><dt class="text-xs font-medium text-gray-500">Email</dt><dd class="text-sm text-gray-900">{{ trabajador.email }}</dd></div>
+            <div><dt class="text-xs font-medium text-gray-500">Teléfono</dt><dd class="text-sm text-gray-900">{{ trabajador.telefono }}</dd></div>
+            <div><dt class="text-xs font-medium text-gray-500">Nacimiento</dt><dd class="text-sm text-gray-900">{{ trabajador.fecha_nacimiento | date:'dd/MM/yyyy' }} ({{ trabajador.edad }} años)</dd></div>
+            <div><dt class="text-xs font-medium text-gray-500">Género</dt><dd class="text-sm text-gray-900">{{ trabajador.genero }}</dd></div>
+            <div><dt class="text-xs font-medium text-gray-500">Dirección</dt><dd class="text-sm text-gray-900">{{ trabajador.direccion }}</dd></div>
+          </div>
+          <!-- Datos Laborales y de Evaluación -->
+          <div class="space-y-4">
+            <h3 class="text-md font-semibold text-gray-700">Información Laboral</h3>
+            <div><dt class="text-xs font-medium text-gray-500">Empresa</dt><dd class="text-sm text-gray-900">{{ trabajador.faenaRelacion.usuario.nombre || 'N/A' }}</dd></div>
+            <div><dt class="text-xs font-medium text-gray-500">Faena</dt><dd class="text-sm text-gray-900">{{ trabajador.faenaRelacion.nombre || 'N/A' }}</dd></div>
+            <div><dt class="text-xs font-medium text-gray-500">Ciudad Faena</dt><dd class="text-sm text-gray-900">{{ trabajador.faenaRelacion.ciudad || 'N/A' }}</dd></div>
+            <h3 class="mt-4 text-md font-semibold text-gray-700">Evaluación</h3>
+            <div><dt class="text-xs font-medium text-gray-500">Tipo</dt><dd class="text-sm text-gray-900">{{ trabajador.tipo_evaluacion }}</dd></div>
+            <div><dt class="text-xs font-medium text-gray-500">Sede</dt><dd class="text-sm text-gray-900">{{ trabajador.sede_evaluacion }}</dd></div>
+            <div><dt class="text-xs font-medium text-gray-500">Fecha Informe</dt><dd class="text-sm text-gray-900">{{ trabajador.fecha_informe | date:'dd/MM/yyyy' }}</dd></div>
+          </div>
         </div>
       </div>
-
-      <div class="mt-6 grid grid-cols-1 gap-x-4 gap-y-8 md:grid-cols-2">
-        <!-- Columna 1: Datos Personales -->
-        <div class="space-y-4">
-          <h3 class="text-lg font-semibold text-gray-700">Información Personal</h3>
-          <div>
-            <dt class="text-sm font-medium text-gray-500">RUT / Pasaporte</dt>
-            <dd class="mt-1 text-sm text-gray-900">{{ trabajador.rut_pasaporte }}</dd>
-          </div>
-          <div>
-            <dt class="text-sm font-medium text-gray-500">Email</dt>
-            <dd class="mt-1 text-sm text-gray-900">{{ trabajador.email }}</dd>
-          </div>
-          <div>
-            <dt class="text-sm font-medium text-gray-500">Teléfono</dt>
-            <dd class="mt-1 text-sm text-gray-900">{{ trabajador.telefono }}</dd>
-          </div>
-          <div>
-            <dt class="text-sm font-medium text-gray-500">Fecha de Nacimiento</dt>
-            <dd class="mt-1 text-sm text-gray-900">{{ trabajador.fecha_nacimiento | date:'dd/MM/yyyy' }} ({{ trabajador.edad }} años)</dd>
-          </div>
-          <!-- ✅ CAMPO AÑADIDO: Género -->
-          <div>
-            <dt class="text-sm font-medium text-gray-500">Género</dt>
-            <dd class="mt-1 text-sm text-gray-900">{{ trabajador.genero }}</dd>
-          </div>
-          <div>
-            <dt class="text-sm font-medium text-gray-500">Dirección</dt>
-            <dd class="mt-1 text-sm text-gray-900">{{ trabajador.direccion }}</dd>
-          </div>
-        </div>
-
-        <!-- Columna 2: Datos Laborales y de Evaluación -->
-        <div class="space-y-4">
-          <h3 class="text-lg font-semibold text-gray-700">Información Laboral</h3>
-          <div>
-            <dt class="text-sm font-medium text-gray-500">Empresa</dt>
-            <dd class="mt-1 text-sm text-gray-900">{{ trabajador.faenaRelacion.usuario.nombre || 'No asignada' }}</dd>
-          </div>
-          <div>
-            <dt class="text-sm font-medium text-gray-500">Faena</dt>
-            <dd class="mt-1 text-sm text-gray-900">{{ trabajador.faenaRelacion.nombre || 'No asignada' }}</dd>
-          </div>
-          <div>
-            <dt class="text-sm font-medium text-gray-500">Ciudad de la Faena</dt>
-            <dd class="mt-1 text-sm text-gray-900">{{ trabajador.faenaRelacion.ciudad || 'No asignada' }}</dd>
-          </div>
-          <h3 class="mt-6 text-lg font-semibold text-gray-700">Detalles de Evaluación</h3>
-          <div>
-            <dt class="text-sm font-medium text-gray-500">Tipo de Evaluación</dt>
-            <dd class="mt-1 text-sm text-gray-900">{{ trabajador.tipo_evaluacion }}</dd>
-          </div>
-          <div>
-            <dt class="text-sm font-medium text-gray-500">Sede</dt>
-            <dd class="mt-1 text-sm text-gray-900">{{ trabajador.sede_evaluacion }}</dd>
-          </div>
-          <div>
-            <dt class="text-sm font-medium text-gray-500">Fecha de Atención</dt>
-            <dd class="mt-1 text-sm text-gray-900">{{ trabajador.fecha_atencion | date:'dd/MM/yyyy' }}</dd>
-          </div>
-          <!-- ✅ CAMPO AÑADIDO: Fecha de Informe -->
-          <div>
-            <dt class="text-sm font-medium text-gray-500">Fecha de Informe</dt>
-            <dd class="mt-1 text-sm text-gray-900">{{ trabajador.fecha_informe | date:'dd/MM/yyyy' }}</dd>
-          </div>
+      <!-- Card del Gráfico de Dona -->
+      <div class="rounded-lg bg-white p-6 shadow-md">
+        <h3 class="text-lg font-semibold text-gray-700">Progreso de Documentación</h3>
+        <div class="relative mx-auto h-48 w-48">
+          <canvas #docsChart></canvas>
         </div>
       </div>
     </div>
-  </main>
+
+    <!-- Columna Derecha (Documentos) -->
+    <div class="space-y-8 lg:col-span-3">
+      <!-- Formulario de Subida (Solo para Admins) -->
+      <div *ngIf="userRole === 'admin'" class="rounded-lg bg-white p-6 shadow-md">
+        <h2 class="text-xl font-semibold">Subir Nuevo Documento</h2>
+        <form [formGroup]="uploadForm" (ngSubmit)="uploadDocument()" class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <div class="sm:col-span-1"><label class="block text-sm font-medium">Nombre</label><input formControlName="nombre" type="text" class="mt-1 w-full rounded-md border-gray-300"></div>
+          <div class="sm:col-span-1"><label class="block text-sm font-medium">Sección</label><input formControlName="seccion" type="text" class="mt-1 w-full rounded-md border-gray-300"></div>
+          <div class="sm:col-span-1"><label class="block text-sm font-medium">Archivo</label><input (change)="onFileSelected($event)" type="file" class="mt-1 w-full text-sm"></div>
+          <div class="sm:col-span-3"><p *ngIf="errorMsg" class="text-sm text-red-600">{{ errorMsg }}</p><p *ngIf="successMsg" class="text-sm text-green-600">{{ successMsg }}</p></div>
+          <div class="sm:col-span-3"><button type="submit" [disabled]="uploadForm.invalid" class="rounded-md bg-indigo-600 px-4 py-2 text-white disabled:opacity-50">Subir Documento</button></div>
+        </form>
+      </div>
+
+      <!-- Lista de Documentos -->
+      <div *ngIf="objectKeys(documentosPorSeccion).length > 0; else noDocs" class="space-y-6">
+        <div *ngFor="let seccion of objectKeys(documentosPorSeccion)" class="rounded-lg bg-white p-6 shadow-md">
+          <h3 class="text-lg font-semibold border-b pb-2">{{ seccion }}</h3>
+          <ul class="mt-4 space-y-2">
+            <li *ngFor="let doc of documentosPorSeccion[seccion]" class="flex items-center justify-between p-2 hover:bg-gray-50 rounded-md">
+              <span class="text-sm text-gray-800">{{ doc.nombre }}</span>
+              <div>
+                <button class="text-sm text-indigo-600 hover:underline">Ver</button>
+                <button *ngIf="userRole === 'admin'" class="ml-4 text-sm text-red-600 hover:underline">Eliminar</button>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+      <ng-template #noDocs>
+        <div class="text-center rounded-lg bg-white p-12 shadow-md text-gray-500">
+          Este trabajador aún no tiene documentos.
+        </div>
+      </ng-template>
+    </div>
+
+  </div>
 
   <ng-template #loading>
-    <p class="text-center text-gray-500">Cargando detalles del trabajador...</p>
+    <p class="w-full text-center text-gray-500">Cargando detalles del trabajador...</p>
   </ng-template>
 </div>

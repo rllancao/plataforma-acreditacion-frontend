@@ -19,6 +19,14 @@ export interface Faena {
   usuario: Usuario;
 }
 
+// Interfaz para el payload de creación de Faena
+export interface CreateFaenaPayload {
+  nombre: string;
+  ciudad: string;
+  usuarioId: number;
+  requisitoIds: number[];
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -36,6 +44,11 @@ export class FaenaService {
     }
     // En el servidor, devolver un arreglo vacío para evitar el error 401
     return of([]);
+  }
+
+  // POST /faenas
+  createFaena(payload: CreateFaenaPayload): Observable<Faena> {
+    return this.http.post<Faena>(this.apiUrl, payload);
   }
 
   // GET /faenas/:id

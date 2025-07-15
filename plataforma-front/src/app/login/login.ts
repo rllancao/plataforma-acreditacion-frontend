@@ -1,6 +1,10 @@
-// 1. Importa ChangeDetectorRef
 import { Component, ChangeDetectorRef } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import {
+  FormBuilder,
+  FormGroup,
+  Validators,
+  ReactiveFormsModule,
+} from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { LucideAngularModule, Eye, EyeOff } from 'lucide-angular';
@@ -9,7 +13,11 @@ import { AuthService } from '../services/auth';
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [ CommonModule, ReactiveFormsModule, LucideAngularModule ],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    LucideAngularModule,
+  ],
   templateUrl: './login.html',
   styleUrls: ['./login.scss'],
 })
@@ -25,7 +33,7 @@ export class Login {
     private fb: FormBuilder,
     private router: Router,
     private authService: AuthService,
-    private cd: ChangeDetectorRef // 2. Inyéctalo en el constructor
+    private cd: ChangeDetectorRef
   ) {
     this.form = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
@@ -43,11 +51,19 @@ export class Login {
 
     this.authService.login(this.form.value).subscribe({
       next: () => {
-        this.router.navigate(['/select-faena']);
+        // ✅ LÓGICA DE REDIRECCIÓN POR ROL
+        const userRole = this.authService.getUserRole();
+
+        if (userRole === 'admin') {
+          // Si es admin, redirige al panel de administración
+          this.router.navigate(['/admin']);
+        } else {
+          // Si es empresa, redirige al selector de faenas
+          this.router.navigate(['/select-faena']);
+        }
       },
       error: (err) => {
         this.errorMsg = 'El correo o la contraseña son incorrectos.';
-        // 3. Llama a detectChanges() para forzar la actualización de la vista
         this.cd.detectChanges();
       }
     });
