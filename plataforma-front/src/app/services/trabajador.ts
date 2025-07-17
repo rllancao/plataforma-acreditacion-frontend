@@ -1,25 +1,29 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
 
-// --- Interfaces para un tipado fuerte y claro ---
-
-// Interfaz para el objeto Usuario anidado
+// --- Interfaces ---
 interface Usuario {
   id: number;
   nombre: string;
   email: string;
 }
 
-// Interfaz para el objeto Faena anidado
+export interface DocumentoRequisito {
+  id: number;
+  nombre: string;
+  seccion: { id: number; nombre: string; };
+}
+
 interface FaenaRelacion {
   id: number;
   nombre: string;
   ciudad: string;
-  usuario: Usuario; // La faena tiene un usuario anidado
+  usuario: Usuario;
+  documentosRequeridos: DocumentoRequisito[];
 }
 
-// Interfaz principal para el Trabajador
 export interface Trabajador {
   id: number;
   nombre: string;
@@ -35,7 +39,6 @@ export interface Trabajador {
   genero: string;
   edad: number;
   cargo: string;
-  // ✅ CORRECCIÓN: Se añade la propiedad para la relación con Faena
   faenaRelacion: FaenaRelacion;
   status: string;
 }
@@ -45,12 +48,28 @@ export interface Trabajador {
 })
 export class TrabajadorService {
   private readonly apiUrl = 'http://localhost:8000/trabajadores';
+  private platformId = inject(PLATFORM_ID); // Inyectar PLATFORM_ID
 
   constructor(private http: HttpClient) { }
 
-  // GET /trabajadores/:id
-  getTrabajadorById(id: number): Observable<Trabajador> {
-    // Le decimos a HttpClient que la respuesta tendrá la forma de nuestra interfaz Trabajador
-    return this.http.get<Trabajador>(`${this.apiUrl}/${id}`);
+  getTrabajadorById(id: number): Observable<Trabajador | null> {
+    // ✅ CORRECCIÓN: Solo hacer la llamada HTTP si estamos en el navegador
+    if (isPlatformBrowser(this.platformId)) {
+      return this.http.get<Trabajador>(`${this.apiUrl}/${id}`);
+    }
+    // En el servidor, devolver un observable de null para evitar el error
+    return of(null);
+  }
+
+  createTrabajador(payload: any): Observable<any> {
+    return this.http.post(this.apiUrl, payload);
+  }
+
+  createTrabajadoresBulk(formData: FormData): Observable<any> {
+    return this.http.post(`${this.apiUrl}/bulk`, formData);
+  }
+
+  deleteTrabajadorByRut(rut: string): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/by-rut/${rut}`);
   }
 }

@@ -1,13 +1,13 @@
-import { Component, OnInit, OnDestroy, ViewChild, ElementRef, ChangeDetectorRef, inject, PLATFORM_ID } from '@angular/core';
-import { isPlatformBrowser, CommonModule } from '@angular/common';
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef, ChangeDetectorRef } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { ReactiveFormsModule, FormGroup, FormControl, Validators } from '@angular/forms';
 import { Chart, registerables } from 'chart.js';
-import { forkJoin, Subscription, of } from 'rxjs'; // 1. Importar 'of' de RxJS
+import { forkJoin, Subscription, of } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
 import { saveAs } from 'file-saver';
 
-import { Trabajador, TrabajadorService } from '../services/trabajador';
+import { Trabajador, TrabajadorService, DocumentoRequisito } from '../services/trabajador';
 import { Documentos, DocumentoService } from '../services/documentos';
 import { AuthService } from '../services/auth';
 import { VolverAtras } from '../volver-atras/volver-atras';
@@ -18,7 +18,7 @@ Chart.register(...registerables);
   selector: 'app-detalle-trabajador',
   standalone: true,
   imports: [CommonModule, VolverAtras, RouterModule, ReactiveFormsModule],
-  templateUrl: './detalle-trabajador.html'
+  templateUrl: './detalle-trabajador.html',
 })
 export class DetalleTrabajadorComponent implements OnInit, OnDestroy {
   trabajador: Trabajador | null = null;
@@ -28,12 +28,13 @@ export class DetalleTrabajadorComponent implements OnInit, OnDestroy {
 
   uploadForm: FormGroup;
   selectedFile: File | null = null;
+  requisitosPorSeccion: { [key: string]: DocumentoRequisito[] } = {};
+  nombresDocumentosDisponibles: DocumentoRequisito[] = [];
   errorMsg = '';
   successMsg = '';
 
   private routeSub?: Subscription;
   private chartInstance?: Chart;
-  private platformId = inject(PLATFORM_ID);
 
   @ViewChild('docsChart') docsChartCanvas!: ElementRef<HTMLCanvasElement>;
 
@@ -45,36 +46,62 @@ export class DetalleTrabajadorComponent implements OnInit, OnDestroy {
     private cd: ChangeDetectorRef
   ) {
     this.uploadForm = new FormGroup({
-      nombre: new FormControl('', [Validators.required]),
       seccion: new FormControl('', [Validators.required]),
+      nombre: new FormControl({ value: '', disabled: true }, [Validators.required]),
       file: new FormControl(null, [Validators.required]),
     });
   }
 
   ngOnInit(): void {
     this.userRole = this.authService.getUserRole();
+    this.loadData();
+  }
+
+  loadData(): void {
     this.routeSub = this.route.paramMap.pipe(
       switchMap(params => {
         const id = Number(params.get('id'));
-        if (!id) {
-          // 2. CORRECCIÓN: Usar 'of(null)' para devolver un observable de un valor nulo
-          return forkJoin({ trabajador: of(null), documentos: of([]) });
-        }
+        if (!id) return forkJoin({ trabajador: of(null), documentos: of([]) });
 
         return forkJoin({
           trabajador: this.trabajadorService.getTrabajadorById(id),
           documentos: this.documentoService.getDocsByTrabajador(id)
         });
       })
-    ).subscribe(result => { // 3. CORRECCIÓN: Se añade un tipo explícito al resultado
+    ).subscribe(result => {
       if (result.trabajador) {
         this.trabajador = result.trabajador;
         this.documentos = result.documentos;
         this.groupDocumentsBySection();
-        this.cd.detectChanges();
+        this.buildRequisitosMap();
+        this.cd.detectChanges(); // Forzar la detección de cambios
         this.createDocsChart();
       }
     });
+  }
+
+  buildRequisitosMap(): void {
+    if (!this.trabajador?.faenaRelacion.documentosRequeridos) return;
+    this.requisitosPorSeccion = this.trabajador.faenaRelacion.documentosRequeridos.reduce((acc, req) => {
+      const seccionNombre = req.seccion?.nombre || 'General';
+      (acc[seccionNombre] = acc[seccionNombre] || []).push(req);
+      return acc;
+    }, {} as { [key: string]: DocumentoRequisito[] });
+  }
+
+  onSeccionChange(event: Event): void {
+    const selectElement = event.target as HTMLSelectElement;
+    const seccionSeleccionada = selectElement.value;
+    const nombreControl = this.uploadForm.get('nombre');
+
+    if (seccionSeleccionada && this.requisitosPorSeccion[seccionSeleccionada]) {
+      this.nombresDocumentosDisponibles = this.requisitosPorSeccion[seccionSeleccionada];
+      nombreControl?.enable();
+    } else {
+      this.nombresDocumentosDisponibles = [];
+      nombreControl?.disable();
+    }
+    nombreControl?.reset('');
   }
 
   groupDocumentsBySection(): void {
@@ -85,12 +112,12 @@ export class DetalleTrabajadorComponent implements OnInit, OnDestroy {
   }
 
   createDocsChart(): void {
-    if (isPlatformBrowser(this.platformId) && this.docsChartCanvas) {
+    if (this.docsChartCanvas && this.trabajador) {
       if (this.chartInstance) this.chartInstance.destroy();
 
       const context = this.docsChartCanvas.nativeElement.getContext('2d');
       if (context) {
-        const totalRequeridos = 10;
+        const totalRequeridos = this.trabajador.faenaRelacion.documentosRequeridos?.length || 0;
         const completados = this.documentos.length;
         const faltantes = Math.max(0, totalRequeridos - completados);
 
@@ -119,7 +146,14 @@ export class DetalleTrabajadorComponent implements OnInit, OnDestroy {
 
   onFileSelected(event: Event): void {
     const element = event.currentTarget as HTMLInputElement;
-    this.selectedFile = element.files ? element.files[0] : null;
+    const file = element.files ? element.files[0] : null;
+    if (file) {
+      this.selectedFile = file;
+      this.uploadForm.patchValue({ file: file });
+    } else {
+      this.selectedFile = null;
+      this.uploadForm.patchValue({ file: null });
+    }
   }
 
   uploadDocument(): void {
@@ -134,14 +168,52 @@ export class DetalleTrabajadorComponent implements OnInit, OnDestroy {
 
     this.documentoService.uploadDocument(formData).subscribe({
       next: () => {
-        this.successMsg = '¡Documento subido!';
-        this.uploadForm.reset();
+        this.successMsg = '¡Documento subido exitosamente!';
+        this.uploadForm.reset({ seccion: '', nombre: { value: '', disabled: true } });
         this.selectedFile = null;
-        this.ngOnInit();
+        this.loadData();
       },
       error: (err) => {
         this.errorMsg = 'Error al subir el documento.';
         this.cd.detectChanges();
+      }
+    });
+  }
+
+  viewDocument(docId: number): void {
+    this.documentoService.viewDocument(docId).subscribe(blob => {
+      const fileURL = URL.createObjectURL(blob);
+      window.open(fileURL, '_blank');
+    });
+  }
+
+  deleteDocument(docId: number): void {
+    if (confirm('¿Estás seguro de que deseas eliminar este documento? Esta acción no se puede deshacer.')) {
+      this.documentoService.deleteDocument(docId).subscribe({
+        next: () => {
+          this.successMsg = 'Documento eliminado exitosamente.';
+          this.loadData();
+        },
+        error: (err) => {
+          this.errorMsg = 'Error al eliminar el documento.';
+          console.error(err);
+          this.cd.detectChanges();
+        }
+      });
+    }
+  }
+
+  downloadAll(): void {
+    if (!this.trabajador) return;
+
+    this.documentoService.downloadAllAsZip(this.trabajador.id).subscribe({
+      next: (blob) => {
+        saveAs(blob, `documentos-${this.trabajador?.nombre?.replace(/\s+/g, '_') || this.trabajador?.id}.zip`);
+      },
+      error: (err) => {
+        this.errorMsg = 'No se pudo descargar el archivo .zip.';
+        this.cd.detectChanges();
+        console.error('Error al descargar el archivo zip:', err);
       }
     });
   }

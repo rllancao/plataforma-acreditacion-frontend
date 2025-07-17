@@ -11,16 +11,16 @@
       <div class="mt-4 grid grid-cols-1 gap-6 md:grid-cols-2">
         <div>
           <label class="block text-sm font-medium">Nombre de la Faena</label>
-          <input formControlName="nombre" type="text" class="mt-1 w-full rounded-md border-gray-300">
+          <input formControlName="nombre" type="text" class="mt-1 w-full rounded-lg border border-gray-300 shadow-sm p-2">
         </div>
         <div>
           <label class="block text-sm font-medium">Ciudad</label>
-          <input formControlName="ciudad" type="text" class="mt-1 w-full rounded-md border-gray-300">
+          <input formControlName="ciudad" type="text" class="mt-1 w-full rounded-lg border border-gray-300 shadow-sm p-2">
         </div>
         <!-- ✅ Selector de Empresa Añadido -->
         <div class="md:col-span-2">
           <label for="empresa" class="block text-sm font-medium">Asignar a Empresa</label>
-          <select formControlName="usuarioId" id="empresa" class="mt-1 block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm">
+          <select formControlName="usuarioId" id="empresa" class="mt-1 block w-full rounded-md border border-gray-300 py-2 pl-3 pr-10 text-base focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm">
             <option value="" disabled>Seleccione una empresa...</option>
             <option *ngFor="let empresa of empresas$ | async" [value]="empresa.id">{{ empresa.nombre }}</option>
           </select>

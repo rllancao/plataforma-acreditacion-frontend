@@ -6,6 +6,7 @@ import { DashboardComponent } from './dashboard/dashboard';
 import { DetalleTrabajadorComponent } from './detalle-trabajador/detalle-trabajador'; // 1. Importar
 import { IngresarFaenaComponent } from './ingresar-faena/ingresar-faena';
 import { AdminDashboardComponent } from './admin-dashboard/admin-dashboard';
+import {IngresarTrabajadorComponent} from './ingresar-trabajador/ingresar-trabajador';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -16,6 +17,7 @@ export const routes: Routes = [
   // 2. Nueva ruta para el detalle del trabajador
   { path: 'trabajador/:id', component: DetalleTrabajadorComponent },
   { path: 'admin/ingresar-faena', component: IngresarFaenaComponent },
+  { path: 'admin/ingresar-trabajador', component: IngresarTrabajadorComponent }, // Asumiendo que IngresarFaenaComponent maneja la lógica de ingresar trabajadores
   { path: 'admin', component: AdminDashboardComponent },
   { path: '**', redirectTo: 'login' },
 ];

@@ -49,13 +49,47 @@
 
     <!-- Columna Derecha (Documentos) -->
     <div class="space-y-8 lg:col-span-3">
+      <div class="flex items-center justify-between rounded-lg bg-white p-6 shadow-md">
+        <h2 class="text-xl font-semibold">Documentos</h2>
+        <!-- ✅ Botón conectado al nuevo método -->
+        <button
+          (click)="downloadAll()"
+          *ngIf="userRole === 'empresa' || userRole === 'admin'"
+          class="rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700"
+        >
+          Descargar Todo (.zip)
+        </button>
+      </div>
       <!-- Formulario de Subida (Solo para Admins) -->
       <div *ngIf="userRole === 'admin'" class="rounded-lg bg-white p-6 shadow-md">
         <h2 class="text-xl font-semibold">Subir Nuevo Documento</h2>
         <form [formGroup]="uploadForm" (ngSubmit)="uploadDocument()" class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <div class="sm:col-span-1"><label class="block text-sm font-medium">Nombre</label><input formControlName="nombre" type="text" class="mt-1 w-full rounded-md border-gray-300"></div>
-          <div class="sm:col-span-1"><label class="block text-sm font-medium">Sección</label><input formControlName="seccion" type="text" class="mt-1 w-full rounded-md border-gray-300"></div>
-          <div class="sm:col-span-1"><label class="block text-sm font-medium">Archivo</label><input (change)="onFileSelected($event)" type="file" class="mt-1 w-full text-sm"></div>
+          <!-- ✅ Selector de Sección -->
+          <div class="sm:col-span-1">
+            <label class="block text-sm font-medium">Sección</label>
+            <select formControlName="seccion" (change)="onSeccionChange($event)" class="mt-1 w-full rounded-md border-gray-300">
+              <option value="" disabled>Seleccione una sección...</option>
+              <option *ngFor="let seccion of objectKeys(requisitosPorSeccion)" [value]="seccion">{{ seccion }}</option>
+            </select>
+          </div>
+
+          <!-- ✅ Selector de Nombre de Documento -->
+          <div class="sm:col-span-1">
+            <label class="block text-sm font-medium">Nombre del Documento</label>
+            <select formControlName="nombre" class="mt-1 w-full rounded-md border-gray-300 disabled:bg-gray-100">
+              <option value="" disabled>Seleccione un documento...</option>
+              <option *ngFor="let doc of nombresDocumentosDisponibles" [value]="doc.nombre">{{ doc.nombre }}</option>
+            </select>
+          </div>
+          <div class="sm:col-span-2">
+            <label class="block text-sm font-medium">Archivo</label>
+            <input
+              formControlName="file"
+              (change)="onFileSelected($event)"
+              type="file"
+              class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
+            >
+          </div>
           <div class="sm:col-span-3"><p *ngIf="errorMsg" class="text-sm text-red-600">{{ errorMsg }}</p><p *ngIf="successMsg" class="text-sm text-green-600">{{ successMsg }}</p></div>
           <div class="sm:col-span-3"><button type="submit" [disabled]="uploadForm.invalid" class="rounded-md bg-indigo-600 px-4 py-2 text-white disabled:opacity-50">Subir Documento</button></div>
         </form>
@@ -69,8 +103,8 @@
             <li *ngFor="let doc of documentosPorSeccion[seccion]" class="flex items-center justify-between p-2 hover:bg-gray-50 rounded-md">
               <span class="text-sm text-gray-800">{{ doc.nombre }}</span>
               <div>
-                <button class="text-sm text-indigo-600 hover:underline">Ver</button>
-                <button *ngIf="userRole === 'admin'" class="ml-4 text-sm text-red-600 hover:underline">Eliminar</button>
+                <button (click)="viewDocument(doc.id)" class="text-sm text-indigo-600 hover:underline">Ver</button>
+                <button *ngIf="userRole === 'admin'" (click)="deleteDocument(doc.id)" class="ml-4 text-sm text-red-600 hover:underline">Eliminar</button>
               </div>
             </li>
           </ul>
