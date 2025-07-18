@@ -9,6 +9,9 @@ export interface Documentos {
   seccion: string;
   path: string;
   mimetype: string;
+  status: 'Completado' | 'Pendiente' | 'Rechazado';
+  observacion: string | null;
+  fechaVencimiento: string | null;
 }
 
 @Injectable({
@@ -35,6 +38,8 @@ export class DocumentoService {
     return this.http.post(`${this.apiUrl}/upload`, formData);
   }
 
+
+
   // Descarga todos los documentos de un trabajador como un archivo .zip
   downloadAllAsZip(trabajadorId: number): Observable<Blob> {
     return this.http.get(`${this.apiUrl}/download/zip/${trabajadorId}`, {
@@ -47,6 +52,10 @@ export class DocumentoService {
     return this.http.get(`${this.apiUrl}/view/${docId}`, {
       responseType: 'blob'
     });
+  }
+
+  updateDocument(docId: number, payload: { status?: string; observacion?: string; fechaVencimiento?: string }): Observable<any> {
+    return this.http.patch(`${this.apiUrl}/${docId}`, payload);
   }
 
   // Llama al endpoint para eliminar un documento

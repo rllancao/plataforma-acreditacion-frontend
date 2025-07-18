@@ -1,12 +1,11 @@
 import { Component } from '@angular/core';
 import { RouterModule } from '@angular/router';
-import { VolverAtras } from '../volver-atras/volver-atras';
 import { LucideAngularModule, Briefcase, PlusCircle, Building2 } from 'lucide-angular';
 
 @Component({
   selector: 'app-admin-dashboard',
   standalone: true,
-  imports: [RouterModule, VolverAtras, LucideAngularModule],
+  imports: [RouterModule, LucideAngularModule],
   template: `
     <div class="min-h-screen bg-gray-100 p-8">
       <header class="mb-8 flex items-center">

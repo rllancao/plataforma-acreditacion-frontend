@@ -1,27 +1,37 @@
-import { Component, OnInit, OnDestroy, ViewChild, ElementRef, ChangeDetectorRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef, ChangeDetectorRef, inject, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser, CommonModule, formatDate } from '@angular/common';
 import { ActivatedRoute, RouterModule } from '@angular/router';
-import { ReactiveFormsModule, FormGroup, FormControl, Validators } from '@angular/forms';
+import { ReactiveFormsModule, FormGroup, FormControl, Validators, FormsModule } from '@angular/forms';
 import { Chart, registerables } from 'chart.js';
 import { forkJoin, Subscription, of } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
 import { saveAs } from 'file-saver';
 
 import { Trabajador, TrabajadorService, DocumentoRequisito } from '../services/trabajador';
+// ✅ CORRECCIÓN: Se usa el nombre de archivo y tipo correctos
 import { Documentos, DocumentoService } from '../services/documentos';
 import { AuthService } from '../services/auth';
 import { VolverAtras } from '../volver-atras/volver-atras';
 
 Chart.register(...registerables);
 
+export interface DocumentoChecklistItem {
+  requisito: DocumentoRequisito;
+  documentoSubido: Documentos | null;
+  estado: 'Completado' | 'Pendiente' | 'Rechazado';
+  observacion: string;
+  fechaVencimiento: string;
+}
+
 @Component({
   selector: 'app-detalle-trabajador',
   standalone: true,
-  imports: [CommonModule, VolverAtras, RouterModule, ReactiveFormsModule],
+  imports: [CommonModule, VolverAtras, RouterModule, ReactiveFormsModule, FormsModule],
   templateUrl: './detalle-trabajador.html',
 })
 export class DetalleTrabajadorComponent implements OnInit, OnDestroy {
   trabajador: Trabajador | null = null;
+  // ✅ CORRECCIÓN: Se usa el tipo 'Documentos' (plural)
   documentos: Documentos[] = [];
   documentosPorSeccion: { [seccion: string]: Documentos[] } = {};
   userRole: 'admin' | 'empresa' | null = null;
@@ -35,8 +45,11 @@ export class DetalleTrabajadorComponent implements OnInit, OnDestroy {
 
   private routeSub?: Subscription;
   private chartInstance?: Chart;
+  private platformId = inject(PLATFORM_ID);
 
   @ViewChild('docsChart') docsChartCanvas!: ElementRef<HTMLCanvasElement>;
+
+  documentosChecklist: { [seccion: string]: DocumentoChecklistItem[] } = {};
 
   constructor(
     private route: ActivatedRoute,
@@ -72,12 +85,35 @@ export class DetalleTrabajadorComponent implements OnInit, OnDestroy {
       if (result.trabajador) {
         this.trabajador = result.trabajador;
         this.documentos = result.documentos;
-        this.groupDocumentsBySection();
+        this.buildChecklist();
         this.buildRequisitosMap();
-        this.cd.detectChanges(); // Forzar la detección de cambios
+        this.cd.detectChanges();
         this.createDocsChart();
       }
     });
+  }
+
+  buildChecklist(): void {
+    const checklist: { [seccion: string]: DocumentoChecklistItem[] } = {};
+    const documentosSubidosMap = new Map(this.documentos.map(doc => [doc.nombre, doc]));
+
+    this.trabajador?.faenaRelacion.documentosRequeridos.forEach(req => {
+      const seccionNombre = req.seccion?.nombre || 'General';
+      if (!checklist[seccionNombre]) {
+        checklist[seccionNombre] = [];
+      }
+
+      const docSubido = documentosSubidosMap.get(req.nombre) || null;
+
+      checklist[seccionNombre].push({
+        requisito: req,
+        documentoSubido: docSubido,
+        estado: docSubido ? docSubido.status : 'Pendiente',
+        observacion: docSubido?.observacion || '',
+        fechaVencimiento: docSubido?.fechaVencimiento ? formatDate(docSubido.fechaVencimiento, 'yyyy-MM-dd', 'en-US') : '',
+      });
+    });
+    this.documentosChecklist = checklist;
   }
 
   buildRequisitosMap(): void {
@@ -105,6 +141,7 @@ export class DetalleTrabajadorComponent implements OnInit, OnDestroy {
   }
 
   groupDocumentsBySection(): void {
+    // ✅ CORRECCIÓN: Se usa el tipo 'Documentos'
     this.documentosPorSeccion = this.documentos.reduce((acc, doc) => {
       (acc[doc.seccion] = acc[doc.seccion] || []).push(doc);
       return acc;
@@ -112,22 +149,22 @@ export class DetalleTrabajadorComponent implements OnInit, OnDestroy {
   }
 
   createDocsChart(): void {
-    if (this.docsChartCanvas && this.trabajador) {
+    if (isPlatformBrowser(this.platformId) && this.docsChartCanvas && this.trabajador) {
       if (this.chartInstance) this.chartInstance.destroy();
-
       const context = this.docsChartCanvas.nativeElement.getContext('2d');
       if (context) {
-        const totalRequeridos = this.trabajador.faenaRelacion.documentosRequeridos?.length || 0;
-        const completados = this.documentos.length;
-        const faltantes = Math.max(0, totalRequeridos - completados);
+        const items = Object.values(this.documentosChecklist).flat();
+        const completados = items.filter(item => item.estado === 'Completado').length;
+        const pendientes = items.filter(item => item.estado === 'Pendiente').length;
+        const rechazados = items.filter(item => item.estado === 'Rechazado').length;
 
         this.chartInstance = new Chart(context, {
           type: 'doughnut',
           data: {
-            labels: ['Completados', 'Faltantes'],
+            labels: ['Completados', 'Pendientes', 'Rechazados'],
             datasets: [{
-              data: [completados, faltantes],
-              backgroundColor: ['rgb(34, 197, 94)', 'rgb(239, 68, 68)'],
+              data: [completados, pendientes, rechazados],
+              backgroundColor: ['rgb(34, 197, 94)', 'rgb(250, 204, 21)', 'rgb(239, 68, 68)'],
               borderColor: '#fff',
               borderWidth: 2,
               hoverOffset: 4,
@@ -142,6 +179,38 @@ export class DetalleTrabajadorComponent implements OnInit, OnDestroy {
         });
       }
     }
+  }
+
+  triggerFileUpload(requisito: DocumentoRequisito): void {
+    this.uploadForm.patchValue({
+      seccion: requisito.seccion.nombre,
+      nombre: requisito.nombre,
+    });
+    document.querySelector('#upload-form')?.scrollIntoView({ behavior: 'smooth' });
+  }
+
+  onStatusChange(item: DocumentoChecklistItem, newStatus: string): void {
+    if (!item.documentoSubido) return;
+    this.documentoService.updateDocument(item.documentoSubido.id, { status: newStatus }).subscribe(() => {
+      this.loadData();
+    });
+  }
+
+  saveObservation(item: DocumentoChecklistItem): void {
+    if (!item.documentoSubido) return;
+    this.documentoService.updateDocument(item.documentoSubido.id, { observacion: item.observacion }).subscribe(() => {
+      alert('Observación guardada.');
+      this.loadData();
+    });
+  }
+
+  onDateChange(item: DocumentoChecklistItem, event: Event): void {
+    if (!item.documentoSubido) return;
+    const newDate = (event.target as HTMLInputElement).value;
+    item.fechaVencimiento = newDate;
+    this.documentoService.updateDocument(item.documentoSubido.id, { fechaVencimiento: newDate }).subscribe(() => {
+      // Opcional: mostrar un feedback de guardado
+    });
   }
 
   onFileSelected(event: Event): void {
@@ -205,7 +274,6 @@ export class DetalleTrabajadorComponent implements OnInit, OnDestroy {
 
   downloadAll(): void {
     if (!this.trabajador) return;
-
     this.documentoService.downloadAllAsZip(this.trabajador.id).subscribe({
       next: (blob) => {
         saveAs(blob, `documentos-${this.trabajador?.nombre?.replace(/\s+/g, '_') || this.trabajador?.id}.zip`);

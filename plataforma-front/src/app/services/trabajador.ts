@@ -2,6 +2,7 @@ import { Injectable, inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
+import { Documentos } from './documentos'; // Asegúrate de que la ruta sea correcta
 
 // --- Interfaces ---
 interface Usuario {
@@ -41,6 +42,8 @@ export interface Trabajador {
   cargo: string;
   faenaRelacion: FaenaRelacion;
   status: string;
+  documentosVencidos?: Documentos[];
+  documentosPorVencer?: Documentos[];
 }
 
 @Injectable({

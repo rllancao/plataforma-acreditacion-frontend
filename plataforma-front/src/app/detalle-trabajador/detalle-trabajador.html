@@ -24,6 +24,7 @@
             <div><dt class="text-xs font-medium text-gray-500">Nacimiento</dt><dd class="text-sm text-gray-900">{{ trabajador.fecha_nacimiento | date:'dd/MM/yyyy' }} ({{ trabajador.edad }} años)</dd></div>
             <div><dt class="text-xs font-medium text-gray-500">Género</dt><dd class="text-sm text-gray-900">{{ trabajador.genero }}</dd></div>
             <div><dt class="text-xs font-medium text-gray-500">Dirección</dt><dd class="text-sm text-gray-900">{{ trabajador.direccion }}</dd></div>
+            <div><dt class="text-xs font-medium text-gray-500">Fecha Atención</dt><dd class="text-sm text-gray-900">{{ trabajador.fecha_atencion | date:'dd/MM/yyyy' }}</dd></div>
           </div>
           <!-- Datos Laborales y de Evaluación -->
           <div class="space-y-4">
@@ -51,7 +52,6 @@
     <div class="space-y-8 lg:col-span-3">
       <div class="flex items-center justify-between rounded-lg bg-white p-6 shadow-md">
         <h2 class="text-xl font-semibold">Documentos</h2>
-        <!-- ✅ Botón conectado al nuevo método -->
         <button
           (click)="downloadAll()"
           *ngIf="userRole === 'empresa' || userRole === 'admin'"
@@ -61,22 +61,19 @@
         </button>
       </div>
       <!-- Formulario de Subida (Solo para Admins) -->
-      <div *ngIf="userRole === 'admin'" class="rounded-lg bg-white p-6 shadow-md">
+      <div *ngIf="userRole === 'admin'" class="rounded-lg bg-white p-6 shadow-md" id="upload-form">
         <h2 class="text-xl font-semibold">Subir Nuevo Documento</h2>
-        <form [formGroup]="uploadForm" (ngSubmit)="uploadDocument()" class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <!-- ✅ Selector de Sección -->
+        <form [formGroup]="uploadForm" (ngSubmit)="uploadDocument()" class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div class="sm:col-span-1">
             <label class="block text-sm font-medium">Sección</label>
-            <select formControlName="seccion" (change)="onSeccionChange($event)" class="mt-1 w-full rounded-md border-gray-300">
+            <select formControlName="seccion" (change)="onSeccionChange($event)" class="mt-1 w-full rounded-lg border border-gray-300 shadow-sm p-2">
               <option value="" disabled>Seleccione una sección...</option>
               <option *ngFor="let seccion of objectKeys(requisitosPorSeccion)" [value]="seccion">{{ seccion }}</option>
             </select>
           </div>
-
-          <!-- ✅ Selector de Nombre de Documento -->
           <div class="sm:col-span-1">
             <label class="block text-sm font-medium">Nombre del Documento</label>
-            <select formControlName="nombre" class="mt-1 w-full rounded-md border-gray-300 disabled:bg-gray-100">
+            <select formControlName="nombre" class="mt-1 w-full rounded-lg border border-gray-300 shadow-sm p-2 disabled:bg-gray-100">
               <option value="" disabled>Seleccione un documento...</option>
               <option *ngFor="let doc of nombresDocumentosDisponibles" [value]="doc.nombre">{{ doc.nombre }}</option>
             </select>
@@ -90,33 +87,80 @@
               class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
             >
           </div>
-          <div class="sm:col-span-3"><p *ngIf="errorMsg" class="text-sm text-red-600">{{ errorMsg }}</p><p *ngIf="successMsg" class="text-sm text-green-600">{{ successMsg }}</p></div>
-          <div class="sm:col-span-3"><button type="submit" [disabled]="uploadForm.invalid" class="rounded-md bg-indigo-600 px-4 py-2 text-white disabled:opacity-50">Subir Documento</button></div>
+          <div class="sm:col-span-2"><p *ngIf="errorMsg" class="text-sm text-red-600">{{ errorMsg }}</p><p *ngIf="successMsg" class="text-sm text-green-600">{{ successMsg }}</p></div>
+          <div class="sm:col-span-2"><button type="submit" [disabled]="uploadForm.invalid" class="rounded-md bg-indigo-600 px-4 py-2 text-white disabled:opacity-50">Subir Documento</button></div>
         </form>
       </div>
 
-      <!-- Lista de Documentos -->
-      <div *ngIf="objectKeys(documentosPorSeccion).length > 0; else noDocs" class="space-y-6">
-        <div *ngFor="let seccion of objectKeys(documentosPorSeccion)" class="rounded-lg bg-white p-6 shadow-md">
+      <!-- ✅ NUEVA LISTA DE DOCUMENTOS (CHECKLIST) -->
+      <div class="space-y-6">
+        <div *ngFor="let seccion of objectKeys(documentosChecklist)" class="rounded-lg bg-white p-6 shadow-md">
           <h3 class="text-lg font-semibold border-b pb-2">{{ seccion }}</h3>
-          <ul class="mt-4 space-y-2">
-            <li *ngFor="let doc of documentosPorSeccion[seccion]" class="flex items-center justify-between p-2 hover:bg-gray-50 rounded-md">
-              <span class="text-sm text-gray-800">{{ doc.nombre }}</span>
-              <div>
-                <button (click)="viewDocument(doc.id)" class="text-sm text-indigo-600 hover:underline">Ver</button>
-                <button *ngIf="userRole === 'admin'" (click)="deleteDocument(doc.id)" class="ml-4 text-sm text-red-600 hover:underline">Eliminar</button>
+          <ul class="mt-4 space-y-4">
+            <li *ngFor="let item of documentosChecklist[seccion]" class="grid grid-cols-1 gap-4 items-start md:grid-cols-3">
+              <!-- Col 1: Nombre y Estado -->
+              <div class="md:col-span-1">
+                <span class="text-sm font-medium text-gray-800">{{ item.requisito.nombre }}</span>
+                <span class="mt-1 block rounded-full px-2 py-0.5 text-xs font-semibold w-fit" [ngClass]="{
+                  'bg-green-100 text-green-800': item.estado === 'Completado',
+                  'bg-yellow-100 text-yellow-800': item.estado === 'Pendiente',
+                  'bg-red-100 text-red-800': item.estado === 'Rechazado'
+                }">
+                  {{ item.estado }}
+                </span>
+              </div>
+
+              <!-- Col 2: Acciones (Ver, Subir, Cambiar Estado y Fecha) -->
+              <div class="md:col-span-1 flex flex-col items-start gap-2">
+                <div class="flex items-center gap-2">
+                  <button *ngIf="item.documentoSubido" (click)="viewDocument(item.documentoSubido.id)" class="text-sm text-indigo-600 hover:underline">Ver</button>
+                  <button *ngIf="!item.documentoSubido && userRole === 'admin'" (click)="triggerFileUpload(item.requisito)" class="text-sm text-blue-600 hover:underline">Subir</button>
+                  <button *ngIf="userRole === 'admin' && item.documentoSubido" (click)="deleteDocument(item.documentoSubido.id)" class="ml-2 text-sm text-red-600 hover:underline">Eliminar</button>
+                </div>
+
+                <div *ngIf="userRole === 'admin' && item.documentoSubido" class="w-full">
+                  <label class="block text-xs font-medium text-gray-500">Fecha Vencimiento</label>
+                  <input
+                    type="date"
+                    [value]="item.fechaVencimiento"
+                    (change)="onDateChange(item, $event)"
+                    class="mt-1 w-full rounded-lg border border-gray-300 shadow-sm p-2"
+                  >
+                </div>
+              </div>
+
+              <!-- Col 3: Observaciones y Selector de Estado -->
+              <div class="md:col-span-1 space-y-2">
+                <!-- Selector de Estado (Admin) -->
+                <div *ngIf="userRole === 'admin' && item.documentoSubido">
+                  <label class="block text-xs font-medium text-gray-500">Cambiar Estado</label>
+                  <select (change)="onStatusChange(item, $any($event.target).value)"
+                          [value]="item.estado"
+                          class="mt-1 w-full rounded-lg border border-gray-300 shadow-sm p-2">
+                    <option value="Completado">Completado</option>
+                    <option value="Pendiente">Pendiente</option>
+                    <option value="Rechazado">Rechazado</option>
+                  </select>
+                </div>
+
+                <!-- Observaciones (Admin Editable, Empresa Solo Lectura) -->
+                <div *ngIf="userRole === 'admin' && item.documentoSubido">
+                  <label class="block text-xs font-medium text-gray-500">Observación</label>
+                  <textarea [(ngModel)]="item.observacion" placeholder="Añadir observación..." class="mt-1 w-full text-sm border-gray-200 rounded-md shadow-sm"></textarea>
+                  <button (click)="saveObservation(item)" class="mt-1 text-xs text-indigo-600 hover:underline">Guardar</button>
+                </div>
+                <div *ngIf="userRole === 'empresa' && item.documentoSubido && item.observacion">
+                  <label class="block text-xs font-medium text-gray-500">Observación</label>
+                  <p class="mt-1 w-full rounded-md border border-gray-200 bg-gray-50 p-2 text-sm text-gray-700 min-h-[60px] break-words">
+                    {{ item.observacion }}
+                  </p>
+                </div>
               </div>
             </li>
           </ul>
         </div>
       </div>
-      <ng-template #noDocs>
-        <div class="text-center rounded-lg bg-white p-12 shadow-md text-gray-500">
-          Este trabajador aún no tiene documentos.
-        </div>
-      </ng-template>
     </div>
-
   </div>
 
   <ng-template #loading>
