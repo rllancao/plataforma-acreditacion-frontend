@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
+import { HttpHeaders } from '@angular/common/http';
 
 @Injectable({
   providedIn: 'root'
@@ -25,19 +26,16 @@ export class ResetPassService {
   verifyCode(email: string, code: string): Observable<any> {
     return this.http.post(`${this.apiUrl}/auth/verify-code`, { email, code });
   }
-  resetPassword(email: string, newPassword: string): Observable<any> {
-    // ✅ CORRECCIÓN: Construimos la URL correcta incluyendo el email del usuario.
+  resetPassword(email: string, newPassword: string, token: string): Observable<any> {
     const resetPasswordUrl = `${this.apiUrl}/usuario/${email}`;
-
-    // ✅ MEJORA: Enviamos solo la nueva contraseña en el cuerpo del PUT.
     const body = { password: newPassword };
 
-    return this.http.put<any>(resetPasswordUrl, body).pipe(
-      catchError(error => {
-        console.error('Error al actualizar la contraseña:', error);
-        // Relanzamos el error para que el componente pueda manejarlo.
-        return throwError(() => error);
-      })
-    );
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`
+    });
+
+    console.log('[ResetPassService] Enviando petición PUT con token temporal.');
+
+    return this.http.put(resetPasswordUrl, body, { headers });
   }
 }
