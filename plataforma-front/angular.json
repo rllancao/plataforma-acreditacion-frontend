@@ -21,7 +21,7 @@
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "scss",
             "assets": [
-                "src/assets"
+              "src/assets"
             ],
             "styles": [
               "src/styles.scss"
@@ -29,7 +29,15 @@
             "server": "src/main.server.ts",
             "outputMode": "server",
             "ssr": {
-              "entry": "src/server.ts"
+              "entry": "src/server.ts",
+              "prerender": {
+                "discoverRoutes": true,
+                "routes": [],
+                "exclude": [
+                  "/dashboard/**",
+                  "/trabajador/**"
+                ]
+              }
             }
           },
           "configurations": {
