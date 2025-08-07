@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, FormControl, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Observable } from 'rxjs';
@@ -52,12 +52,15 @@ export class IngresarTrabajadorComponent implements OnInit {
   bulkMsg = '';
   deleteMsg = '';
 
+  bulkErrors: string[] = [];
+
   isSedeDropdownOpen = false;
 
   constructor(
     private fb: FormBuilder,
     private faenaService: FaenaService,
     private trabajadorService: TrabajadorService,
+    private cd: ChangeDetectorRef // 2. Inyectar ChangeDetectorRef
   ) {
     // Formulario para ingreso manual
     this.manualForm = this.fb.group({
@@ -124,14 +127,30 @@ export class IngresarTrabajadorComponent implements OnInit {
 
   submitBulk(): void {
     if (this.bulkForm.invalid || !this.selectedFile) return;
+
+    // Limpiar mensajes anteriores al reenviar
     this.bulkMsg = '';
+    this.bulkErrors = [];
+
     const formData = new FormData();
     formData.append('file', this.selectedFile);
     formData.append('faenaId', this.bulkForm.get('faenaId')?.value);
 
     this.trabajadorService.createTrabajadoresBulk(formData).subscribe({
-      next: (res) => (this.bulkMsg = `${res.createdCount} trabajadores importados.`),
-      error: (err) => (this.bulkMsg = 'Error al importar archivo.'),
+
+      next: (res) => {
+        this.bulkMsg = `${res.createdCount} trabajadores importados exitosamente.`;
+        this.cd.detectChanges();
+      },
+      error: (err) => {
+        if (err.error && Array.isArray(err.error.message)) {
+          this.bulkMsg = 'El archivo contiene errores. Por favor, corrígelos y vuelve a intentarlo.';
+          this.bulkErrors = err.error.message;
+        } else {
+          this.bulkMsg = 'Ocurrió un error inesperado al importar el archivo.';
+        }
+        this.cd.detectChanges();
+      },
     });
   }
 

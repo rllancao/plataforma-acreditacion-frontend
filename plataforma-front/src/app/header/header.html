@@ -1,0 +1,36 @@
+<!-- El header ahora es siempre visible, pero su contenido es dinámico -->
+<header class="bg-[#2D334E] text-white shadow-md sticky top-0 z-50">
+  <nav class="container mx-auto flex h-20 items-center justify-between px-6">
+    <!-- Logo/Marca - Siempre visible -->
+    <a [routerLink]="userRole === 'admin' ? ['/admin'] : (authService.isAuthenticated() ? ['/select-faena'] : ['/login'])" class="flex items-center gap-x-3 text-xl font-bold transition hover:text-indigo-300">
+      <img src="assets/images/logo_seleccion_y_talento_blanco.png" alt="Workmed Logo" class="h-52 w-auto">
+
+    </a>
+
+    <!-- Contenedor para los enlaces y el botón de cierre de sesión -->
+    <div class="flex items-center space-x-6">
+      <!-- Enlaces de Navegación (solo para usuarios autenticados) -->
+      @if (authService.isAuthenticated()) {
+        <div class="hidden items-center space-x-6 md:flex">
+          @if (userRole === 'admin') {
+            <a routerLink="/select-faena" class="text-sm font-medium transition hover:text-indigo-300">Seleccionar Faena</a>
+            <a routerLink="/admin/ingresar-faena" class="text-sm font-medium transition hover:text-indigo-300">Ingresar Faena</a>
+            <a routerLink="/admin/ingresar-empresa" class="text-sm font-medium transition hover:text-indigo-300">Ingresar Empresa</a>
+            <a routerLink="/admin/ingresar-trabajador" class="text-sm font-medium transition hover:text-indigo-300">Ingresar Trabajador</a>
+          }
+          @if (userRole === 'empresa') {
+            <a routerLink="/select-faena" class="text-sm font-medium transition hover:text-indigo-300">Seleccionar Faena</a>
+          }
+        </div>
+      }
+
+      <!-- Botón de Cerrar Sesión (solo para usuarios autenticados) -->
+      @if (authService.isAuthenticated()) {
+        <button (click)="logout()" class="flex items-center gap-2 rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium transition hover:bg-indigo-700">
+          <lucide-icon [img]="LogOut" class="h-4 w-4"></lucide-icon>
+          <span>Cerrar Sesión</span>
+        </button>
+      }
+    </div>
+  </nav>
+</header>

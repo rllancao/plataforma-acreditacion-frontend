@@ -1,8 +1,11 @@
 <div class="flex min-h-screen flex-col bg-slate-100">
-  <header class="flex items-center p-4">
-    <!-- ✅ Le pasamos la ruta personalizada al componente -->
-    <app-volver-atras [customBackLink]="backLink"></app-volver-atras>
-  </header>
+  @if (show) {
+    <header class="flex items-center p-4">
+      <app-volver-atras [customBackLink]="backLink"></app-volver-atras>
+    </header>
+
+  }
+
 
   <main class="flex flex-col items-center p-8">
     <h1 class="text-3xl font-bold text-gray-800">Seleccionar Faena</h1>

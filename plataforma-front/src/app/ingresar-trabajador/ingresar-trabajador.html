@@ -9,7 +9,6 @@
     <div class="rounded-lg bg-white p-6 shadow-md">
       <h2 class="text-xl font-semibold border-b pb-2">Ingreso Manual de Trabajador</h2>
       <form [formGroup]="manualForm" (ngSubmit)="submitManual()" class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
-        <!-- ✅ Se añadió la clase 'border' a todos los inputs y selects para visibilidad constante -->
         <div><label class="block text-sm font-medium text-gray-700">Nombre Completo</label><input formControlName="nombre" class="mt-1 w-full rounded-lg border border-gray-300 shadow-sm p-2"></div>
         <div><label class="block text-sm font-medium text-gray-700">Género</label>
           <select formControlName="genero" class="mt-1 w-full rounded-lg border border-gray-300 shadow-sm p-2">
@@ -34,13 +33,17 @@
               {{ manualForm.get('sede_evaluacion')?.value || 'Seleccione...' }}
             </span>
           </button>
-          <div *ngIf="isSedeDropdownOpen" class="absolute z-10 mt-1 w-full rounded-md bg-white shadow-lg">
-            <ul class="max-h-48 overflow-auto rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-              <li *ngFor="let centro of centros" (click)="selectSede(centro)" class="cursor-pointer select-none relative py-2 pl-3 pr-9 text-gray-900 hover:bg-indigo-600 hover:text-white">
-                <span class="block truncate">{{ centro }}</span>
-              </li>
-            </ul>
-          </div>
+          @if (isSedeDropdownOpen) {
+            <div class="absolute z-10 mt-1 w-full rounded-md bg-white shadow-lg">
+              <ul class="max-h-48 overflow-auto rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+                @for (centro of centros; track centro) {
+                  <li (click)="selectSede(centro)" class="cursor-pointer select-none relative py-2 pl-3 pr-9 text-gray-900 hover:bg-indigo-600 hover:text-white">
+                    <span class="block truncate">{{ centro }}</span>
+                  </li>
+                }
+              </ul>
+            </div>
+          }
         </div>
         <div><label class="block text-sm font-medium text-gray-700">Tipo de Evaluación</label>
           <select formControlName="tipo_evaluacion" class="mt-1 w-full rounded-lg border border-gray-300 shadow-sm p-2">
@@ -54,7 +57,9 @@
         <div><label class="block text-sm font-medium text-gray-700">Asignar a Faena</label>
           <select formControlName="faenaId" class="mt-1 w-full rounded-lg border border-gray-300 shadow-sm p-2">
             <option value="" disabled>Seleccione...</option>
-            <option *ngFor="let faena of faenas$ | async" [value]="faena.id">{{ faena.nombre }}</option>
+            @for (faena of faenas$ | async; track faena.id) {
+              <option [value]="faena.id">{{ faena.nombre }}</option>
+            }
           </select>
         </div>
         <div class="md:col-span-2"><p class="text-sm text-green-600">{{ manualMsg }}</p><button type="submit" [disabled]="manualForm.invalid" class="rounded-lg bg-indigo-600 px-4 py-2 text-white disabled:opacity-50">Guardar Trabajador</button></div>
@@ -68,11 +73,29 @@
         <div><label class="block text-sm font-medium text-gray-700">Asignar TODOS a la Faena</label>
           <select formControlName="faenaId" class="mt-1 w-full rounded-lg border border-gray-300 shadow-sm p-2">
             <option value="" disabled>Seleccione...</option>
-            <option *ngFor="let faena of faenas$ | async" [value]="faena.id">{{ faena.nombre }}</option>
+            @for (faena of faenas$ | async; track faena.id) {
+              <option [value]="faena.id">{{ faena.nombre }}</option>
+            }
           </select>
         </div>
         <div><label class="block text-sm font-medium text-gray-700">Archivo Excel (.xlsx)</label><input formControlName="file" type="file" (change)="onFileSelected($event)" accept=".xlsx, .xls" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"></div>
-        <div class="md:col-span-2"><p class="text-sm text-green-600">{{ bulkMsg }}</p><button type="submit" [disabled]="bulkForm.invalid" class="rounded-lg bg-indigo-600 px-4 py-2 text-white disabled:opacity-50">Importar Archivo</button></div>
+
+        <!-- ✅ Bloque para mostrar mensajes de feedback y errores de validación -->
+        <div class="md:col-span-2 space-y-2">
+          @if (bulkMsg) {
+            <p [ngClass]="bulkErrors.length > 0 ? 'text-red-600' : 'text-green-600'" class="text-sm font-semibold">
+              {{ bulkMsg }}
+            </p>
+          }
+          @if (bulkErrors.length > 0) {
+            <ul class="list-disc list-inside space-y-1 rounded-md bg-red-50 p-3 text-sm text-red-700">
+              @for (error of bulkErrors; track $index) {
+                <li>{{ error }}</li>
+              }
+            </ul>
+          }
+          <button type="submit" [disabled]="bulkForm.invalid" class="rounded-lg bg-indigo-600 px-4 py-2 text-white disabled:opacity-50">Importar Archivo</button>
+        </div>
       </form>
     </div>
 

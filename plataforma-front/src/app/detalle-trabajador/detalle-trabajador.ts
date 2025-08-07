@@ -35,6 +35,7 @@ export class DetalleTrabajadorComponent implements OnInit, OnDestroy {
   documentos: Documentos[] = [];
   documentosPorSeccion: { [seccion: string]: Documentos[] } = {};
   userRole: 'admin' | 'empresa' | null = null;
+  backLink: any[] | null = null; //
 
   uploadForm: FormGroup;
   selectedFile: File | null = null;
@@ -85,6 +86,12 @@ export class DetalleTrabajadorComponent implements OnInit, OnDestroy {
       if (result.trabajador) {
         this.trabajador = result.trabajador;
         this.documentos = result.documentos;
+
+        // ✅ Construir el enlace de vuelta al dashboard de la faena
+        if (this.trabajador.faenaRelacion?.id) {
+          this.backLink = ['/dashboard', this.trabajador.faenaRelacion.id];
+        }
+
         this.buildChecklist();
         this.buildRequisitosMap();
         this.cd.detectChanges();

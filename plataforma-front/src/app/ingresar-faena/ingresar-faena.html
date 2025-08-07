@@ -17,7 +17,6 @@
           <label class="block text-sm font-medium">Ciudad</label>
           <input formControlName="ciudad" type="text" class="mt-1 w-full rounded-lg border border-gray-300 shadow-sm p-2">
         </div>
-        <!-- ✅ Selector de Empresa Añadido -->
         <div class="md:col-span-2">
           <label for="empresa" class="block text-sm font-medium">Asignar a Empresa</label>
           <select formControlName="usuarioId" id="empresa" class="mt-1 block w-full rounded-md border border-gray-300 py-2 pl-3 pr-10 text-base focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm">
@@ -32,8 +31,19 @@
     <div class="rounded-lg bg-white p-6 shadow-md">
       <h2 class="text-xl font-semibold">Requisitos de Documentación</h2>
       <p class="text-sm text-gray-500">Selecciona todos los documentos que serán requeridos para los trabajadores de esta faena.</p>
+
+      <!-- ✅ NUEVO: Botones para seleccionar/deseleccionar todos -->
+      <div class="mt-4 flex gap-x-4 border-b pb-4">
+        <button type="button" (click)="selectAll()" class="text-sm font-medium rounded-lg p-2 border text-indigo-600 hover:text-indigo-800">
+          Seleccionar Todos
+        </button>
+        <button type="button" (click)="deselectAll()" class="text-sm font-medium rounded-lg p-2 border text-gray-600 hover:text-gray-800">
+          Deseleccionar Todos
+        </button>
+      </div>
+
       <div formArrayName="requisitos" class="mt-4 space-y-6">
-        <div *ngFor="let seccion of seccionesRequisitos; let seccionIndex = index" class="border-t pt-4 first:border-t-0 first:pt-0">
+        <div *ngFor="let seccion of seccionesRequisitos; let seccionIndex = index" class="pt-4 first:pt-0">
           <h3 class="font-medium text-gray-900">{{ seccion.nombre }}</h3>
           <div class="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
             <label *ngFor="let doc of seccion.documentos; let docIndex = index" class="flex items-center space-x-3 rounded-md p-2 hover:bg-gray-50">

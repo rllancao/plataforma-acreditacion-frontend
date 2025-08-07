@@ -17,6 +17,7 @@ export class SelectFaena implements OnInit {
   // 2. La propiedad ahora será un Observable
   faenas$!: Observable<Faena[]>;
   backLink: string[] | null = null;
+  show = false
 
   // 3. Inyectar el servicio
   constructor(private faenaService: FaenaService, private authService: AuthService) {}
@@ -28,9 +29,11 @@ export class SelectFaena implements OnInit {
     const userRole = this.authService.getUserRole();
     if (userRole === 'admin') {
       this.backLink = ['/admin'];
+      this.show = true;
     } else {
       // Para 'empresa', el comportamiento por defecto es volver al login
       this.backLink = ['/login'];
+      this.show = false;
     }
   }
 }

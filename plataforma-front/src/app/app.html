@@ -1,10 +1,16 @@
-<button
-  *ngIf="authService.isAuthenticated()"
-  (click)="logout()"
-  class="fixed top-4 right-4 z-50 flex items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-md transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-  aria-label="Cerrar sesión"
->
-  <lucide-icon [img]="LogOut" class="h-4 w-4"></lucide-icon>
-  <span>Cerrar Sesión</span>
-</button>
-<router-outlet> </router-outlet>
+<div class="flex min-h-screen flex-col">
+  <!-- ✅ La condición ahora usa el nuevo getter -->
+  @if (showHeaderAndFooter) {
+    <app-header></app-header>
+  }
+
+  <main class="flex-grow">
+    <!-- El contenido de las rutas (login, dashboard, etc.) se renderiza aquí -->
+    <router-outlet></router-outlet>
+  </main>
+
+  <!-- ✅ La condición ahora usa el nuevo getter -->
+  @if (showHeaderAndFooter) {
+    <app-footer></app-footer>
+  }
+</div>

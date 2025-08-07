@@ -63,6 +63,20 @@ export class IngresarFaenaComponent implements OnInit {
     });
   }
 
+  // ✅ NUEVO MÉTODO: Marca todos los checkboxes
+  selectAll(): void {
+    this.requisitosFormArray.controls.forEach(control => {
+      control.setValue(true);
+    });
+  }
+
+  // ✅ NUEVO MÉTODO: Desmarca todos los checkboxes
+  deselectAll(): void {
+    this.requisitosFormArray.controls.forEach(control => {
+      control.setValue(false);
+    });
+  }
+
   onSubmit(): void {
     if (this.faenaForm.invalid) {
       this.faenaForm.markAllAsTouched();
@@ -75,13 +89,12 @@ export class IngresarFaenaComponent implements OnInit {
       .map((checked: boolean, i: number) => checked ? this.requisitoIdMap[i] : null)
       .filter((id: number | null) => id !== null);
 
-    // ✅ CORRECCIÓN: Se asegura que el usuarioId se envíe como número.
     const payload = {
       ...rawFormValue,
-      usuarioId: Number(rawFormValue.usuarioId), // Conversión explícita a número
+      usuarioId: Number(rawFormValue.usuarioId),
       requisitoIds: selectedRequisitoIds
     };
-    delete payload.requisitos; // Eliminar el array de booleans que no se necesita en el backend
+    delete payload.requisitos;
 
     this.faenaService.createFaena(payload).subscribe(() => {
       alert('¡Faena creada exitosamente!');

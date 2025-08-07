@@ -59,10 +59,24 @@ export class AuthService {
   }
 
   isAuthenticated(): boolean {
-    // Solo acceder a localStorage si estamos en el navegador
-    if (isPlatformBrowser(this.platformId)) {
-      return !!localStorage.getItem('access_token');
+    if (!isPlatformBrowser(this.platformId)) {
+      return false;
     }
-    return false;
+
+    const token = localStorage.getItem('access_token');
+    if (!token) {
+      return false;
+    }
+
+    try {
+      const decodedToken: DecodedToken = jwtDecode(token);
+      const expirationDate = new Date(0);
+      expirationDate.setUTCSeconds(decodedToken.exp);
+      // Devuelve true si la fecha de expiración es posterior a la fecha actual
+      return expirationDate.valueOf() > new Date().valueOf();
+    } catch (error) {
+      console.error('Error al decodificar el token en isAuthenticated:', error);
+      return false;
+    }
   }
 }

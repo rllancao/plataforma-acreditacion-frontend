@@ -20,4 +20,8 @@ export class UsuarioService {
   getEmpresas(): Observable<Empresa[]> {
     return this.http.get<Empresa[]>(`${this.apiUrl}/empresas`);
   }
+
+  createEmpresa(payload: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/empresa`, payload);
+  }
 }
