@@ -1,5 +1,4 @@
 import { Routes } from '@angular/router';
-
 import { Login } from './login/login';
 import { SelectFaena } from './select-faena/select-faena';
 import { OlvidastePass } from "./olvidaste-pass/olvidaste-pass";
@@ -18,46 +17,19 @@ export const routes: Routes = [
   { path: 'login', component: Login },
   { path: 'olvidaste-pass', component: OlvidastePass },
 
-  // Rutas protegidas para cualquier usuario logueado
-  {
-    path: 'select-faena',
-    component: SelectFaena,
-    canActivate: [authGuard]
-  },
-  {
-    path: 'dashboard/:id',
-    component: DashboardComponent,
-    canActivate: [authGuard]
-  },
-  {
-    path: 'trabajador/:id',
-    component: DetalleTrabajadorComponent,
-    canActivate: [authGuard]
-  },
+  // Rutas protegidas por authGuard
+  { path: 'select-faena', component: SelectFaena, canActivate: [authGuard] },
+  { path: 'dashboard/:id', component: DashboardComponent, canActivate: [authGuard] },
+  { path: 'trabajador/:id', component: DetalleTrabajadorComponent, canActivate: [authGuard] },
 
-  // Rutas de administrador
-  {
-    path: 'admin',
-    component: AdminDashboardComponent,
-    canActivate: [adminGuard]
-  },
-  {
-    path: 'admin/ingresar-faena',
-    component: IngresarFaenaComponent,
-    canActivate: [adminGuard]
-  },
-  {
-    path: 'admin/ingresar-empresa',
-    component: IngresarEmpresaComponent,
-    canActivate: [adminGuard]
-  },
-  {
-    path: 'admin/ingresar-trabajador',
-    component: IngresarTrabajadorComponent,
-    canActivate: [adminGuard]
-  },
+  // Rutas protegidas por adminGuard
+  { path: 'admin', component: AdminDashboardComponent, canActivate: [adminGuard] },
+  { path: 'admin/ingresar-faena', component: IngresarFaenaComponent, canActivate: [adminGuard] },
+  { path: 'admin/ingresar-empresa', component: IngresarEmpresaComponent, canActivate: [adminGuard] },
+  { path: 'admin/ingresar-trabajador', component: IngresarTrabajadorComponent, canActivate: [adminGuard] },
 
-  // Rutas por defecto y de fallback
+  // Rutas de fallback
   { path: '', redirectTo: 'login', pathMatch: 'full' },
   { path: '**', redirectTo: 'login' },
 ];
+
