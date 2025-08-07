@@ -29,15 +29,15 @@
             "server": "src/main.server.ts",
             "outputMode": "server",
             "ssr": {
-              "entry": "src/server.ts",
-              "prerender": {
-                "discoverRoutes": true,
-                "routes": [],
-                "exclude": [
-                  "/dashboard/**",
-                  "/trabajador/**"
-                ]
-              }
+              "entry": "src/server.ts"
+            },
+            "prerender": {
+              "discoverRoutes": true,
+              "routes": [],
+              "exclude": [
+                "/dashboard/**",
+                "/trabajador/**"
+              ]
             }
           },
           "configurations": {
