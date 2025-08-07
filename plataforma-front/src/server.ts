@@ -14,15 +14,8 @@ const angularApp = new AngularNodeAppEngine();
 
 /**
  * Example Express Rest API endpoints can be defined here.
- * Uncomment and define endpoints as necessary.
- *
- * Example:
- * ```ts
- * app.get('/api/{*splat}', (req, res) => {
- *   // Handle API request
- * });
- * ```
  */
+// app.get('/api/**', (req, res) => { });
 
 /**
  * Serve static files from /browser
@@ -39,17 +32,34 @@ app.use(
  * Handle all other requests by rendering the Angular application.
  */
 app.use((req, res, next) => {
+  // ✅ INICIO: Lógica de Control de Renderizado
+
+  // Rutas que son dinámicas y deben ser renderizadas en el servidor, no pre-renderizadas.
+  const dynamicRoutes = [
+    '/dashboard/',
+    '/trabajador/',
+    '/select-faena',
+    '/admin'
+  ];
+
+  // Se comprueba si la URL actual comienza con alguna de las rutas dinámicas.
+  const isDynamicRoute = dynamicRoutes.some(route => req.originalUrl.startsWith(route));
+
   angularApp
-    .handle(req)
+    .handle(req, {
+      // Si es una ruta dinámica, se renderiza en el servidor en el momento de la petición.
+      // Si no, se permite que se pre-renderice durante la compilación.
+      renderMode: isDynamicRoute ? 'server' : 'prerender'
+    })
     .then((response) =>
       response ? writeResponseToNodeResponse(response, res) : next(),
     )
     .catch(next);
+  // ✅ FIN: Lógica de Control de Renderizado
 });
 
 /**
  * Start the server if this module is the main entry point.
- * The server listens on the port defined by the `PORT` environment variable, or defaults to 4000.
  */
 if (isMainModule(import.meta.url)) {
   const port = process.env['PORT'] || 8000;
@@ -63,6 +73,6 @@ if (isMainModule(import.meta.url)) {
 }
 
 /**
- * Request handler used by the Angular CLI (for dev-server and during build) or Firebase Cloud Functions.
+ * Request handler used by the Angular CLI or Firebase Cloud Functions.
  */
 export const reqHandler = createNodeRequestHandler(app);
