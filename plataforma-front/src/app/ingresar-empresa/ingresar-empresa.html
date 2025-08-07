@@ -1,0 +1,37 @@
+<div class="min-h-screen bg-gray-100 p-8">
+  <header class="mb-8 flex items-center">
+    <app-volver-atras></app-volver-atras>
+    <h1 class="ml-4 text-3xl font-bold text-gray-800">Ingresar Nueva Empresa</h1>
+  </header>
+
+  <div class="mx-auto max-w-lg">
+    <form [formGroup]="empresaForm" (ngSubmit)="onSubmit()" class="space-y-6 rounded-lg bg-white p-8 shadow-md">
+      <div>
+        <label for="nombre" class="block text-sm font-medium text-gray-700">Nombre de la Empresa</label>
+        <input formControlName="nombre" id="nombre" type="text" class="mt-1 w-full rounded-lg border border-gray-300 p-2 shadow-sm">
+      </div>
+      <div>
+        <label for="email" class="block text-sm font-medium text-gray-700">Email de Contacto</label>
+        <input formControlName="email" id="email" type="email" class="mt-1 w-full rounded-lg border border-gray-300 p-2 shadow-sm">
+      </div>
+      <div>
+        <label for="password" class="block text-sm font-medium text-gray-700">Contraseña Inicial</label>
+        <input formControlName="password" id="password" type="password" class="mt-1 w-full rounded-lg border border-gray-300 p-2 shadow-sm">
+        <p class="mt-1 text-xs text-gray-500">Mínimo 6 caracteres. La empresa podrá cambiarla después.</p>
+      </div>
+
+      <!-- Mensajes de Feedback -->
+      @if (feedbackMsg) {
+        <p [ngClass]="isError ? 'text-red-600' : 'text-green-600'" class="text-sm">
+          {{ feedbackMsg }}
+        </p>
+      }
+
+      <div class="flex justify-end">
+        <button type="submit" [disabled]="empresaForm.invalid" class="rounded-lg bg-indigo-600 px-6 py-2 font-medium text-white hover:bg-indigo-700 disabled:opacity-50">
+          Crear Empresa
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

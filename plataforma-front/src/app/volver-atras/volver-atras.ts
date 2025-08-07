@@ -11,7 +11,7 @@ import { LucideAngularModule, ArrowLeft } from 'lucide-angular';
     <a
       *ngIf="customBackLink; else defaultBack"
       [routerLink]="customBackLink"
-      class="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900"
+      class="inline-flex items-center gap-1 text-gray-600 hover:text-gray-900"
     >
       <lucide-icon [img]="ArrowLeft" class="h-5 w-5"></lucide-icon>
       <span class="font-medium">Volver</span>

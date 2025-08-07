@@ -40,6 +40,7 @@ export class OlvidastePass {
   hide = true;
   errorMsg = '';
   successMsg = '';
+  private resetToken: string | null = null;
 
   emailForm: FormGroup;
   codeForm: FormGroup;
@@ -102,10 +103,16 @@ export class OlvidastePass {
     const code = this.codeForm.value.code;
 
     this.resetPassService.verifyCode(email, code).subscribe({
-      next: () => {
-        this.successMsg = '¡Código correcto!';
-        this.step = 3;
-        this.cd.detectChanges();
+      next: (response) => {
+        if (response && response.reset_token) {
+          this.resetToken = response.reset_token;
+          this.successMsg = '¡Código correcto!';
+          this.step = 3;
+          this.cd.detectChanges();
+        } else {
+          this.errorMsg = 'Respuesta inesperada del servidor.';
+          this.cd.detectChanges();
+        }
       },
       error: (err) => {
         this.errorMsg = 'El código es incorrecto o ha expirado.';
@@ -114,25 +121,26 @@ export class OlvidastePass {
     });
   }
 
-  // ✅ MÉTODO AÑADIDO
   resendCode(): void {
     this.clearMessages();
-    // La lógica es la misma que sendCode, pero podemos dar un feedback diferente.
     this.resetPassService.sendCode(this.emailForm.value.email).subscribe({
       next: () => {
         this.successMsg = 'Se ha reenviado un nuevo código a tu correo.';
-        this.cd.detectChanges(); // Forzar actualización
+        this.cd.detectChanges();
       },
       error: (err) => {
         this.errorMsg = 'No se pudo reenviar el código. Inténtalo de nuevo.';
-        this.cd.detectChanges(); // Forzar actualización
+        this.cd.detectChanges();
       },
     });
   }
 
   resetPassword(): void {
-    if (this.passwordForm.invalid) {
-      this.passwordForm.markAllAsTouched();
+    // ✅ CORRECCIÓN: Se asigna a una constante local para ayudar a TypeScript
+    const token = this.resetToken;
+
+    if (this.passwordForm.invalid || !token) {
+      this.errorMsg = 'Token de reseteo inválido. Por favor, reinicia el proceso.';
       return;
     }
     this.clearMessages();
@@ -140,13 +148,15 @@ export class OlvidastePass {
     const email = this.emailForm.value.email;
     const newPassword = this.passwordForm.value.password;
 
-    this.resetPassService.resetPassword(email, newPassword).subscribe({
+    // Se usa la constante local 'token', que TypeScript ahora sabe que es un string
+    this.resetPassService.resetPassword(email, newPassword, token).subscribe({
       next: () => {
+        console.log('Contraseña cambiada exitosamente');
         this.step = 4;
         this.cd.detectChanges();
       },
       error: (err) => {
-        this.errorMsg = 'No se pudo actualizar la contraseña. Inténtalo de nuevo.';
+        this.errorMsg = 'No se pudo actualizar la contraseña. El token puede haber expirado.';
         this.cd.detectChanges();
       },
     });

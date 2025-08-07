@@ -1,0 +1,111 @@
+<div class="min-h-screen bg-gray-100 p-8">
+  <header class="mb-8 flex items-center">
+    <app-volver-atras></app-volver-atras>
+    <h1 class="ml-4 text-3xl font-bold text-gray-800">Ingresar y Gestionar Trabajadores</h1>
+  </header>
+
+  <div class="mx-auto max-w-4xl space-y-12">
+    <!-- Sección 1: Ingreso Manual -->
+    <div class="rounded-lg bg-white p-6 shadow-md">
+      <h2 class="text-xl font-semibold border-b pb-2">Ingreso Manual de Trabajador</h2>
+      <form [formGroup]="manualForm" (ngSubmit)="submitManual()" class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
+        <div><label class="block text-sm font-medium text-gray-700">Nombre Completo</label><input formControlName="nombre" class="mt-1 w-full rounded-lg border border-gray-300 shadow-sm p-2"></div>
+        <div><label class="block text-sm font-medium text-gray-700">Género</label>
+          <select formControlName="genero" class="mt-1 w-full rounded-lg border border-gray-300 shadow-sm p-2">
+            <option value="" disabled>Seleccione...</option>
+            <option value ="Masculino"> Masculino </option>
+            <option value ="Femenino"> Femenino </option>
+          </select></div>
+        <div><label class="block text-sm font-medium text-gray-700">Dirección</label><input formControlName="direccion" class="mt-1 w-full rounded-lg border border-gray-300 shadow-sm p-2"></div>
+        <div><label class="block text-sm font-medium text-gray-700">Edad</label><input formControlName="edad" type="number" class="mt-1 w-full rounded-lg border border-gray-300 shadow-sm p-2"></div>
+        <div><label class="block text-sm font-medium text-gray-700">RUT / Pasaporte</label><input formControlName="rut_pasaporte" class="mt-1 w-full rounded-lg border border-gray-300 shadow-sm p-2"></div>
+        <div><label class="block text-sm font-medium text-gray-700">Email</label><input formControlName="email" type="email" class="mt-1 w-full rounded-lg border border-gray-300 shadow-sm p-2"></div>
+        <div><label class="block text-sm font-medium text-gray-700">Teléfono</label><input formControlName="telefono" type="number" class="mt-1 w-full rounded-lg border border-gray-300 shadow-sm p-2"></div>
+        <div><label class="block text-sm font-medium text-gray-700">Cargo</label><input formControlName="cargo" class="mt-1 w-full rounded-lg border border-gray-300 shadow-sm p-2"></div>
+        <div class="relative">
+          <label class="block text-sm font-medium text-gray-700">Centro de Atención</label>
+          <button
+            type="button"
+            (click)="toggleSedeDropdown()"
+            class="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-left shadow-sm"
+          >
+            <span class="block truncate">
+              {{ manualForm.get('sede_evaluacion')?.value || 'Seleccione...' }}
+            </span>
+          </button>
+          @if (isSedeDropdownOpen) {
+            <div class="absolute z-10 mt-1 w-full rounded-md bg-white shadow-lg">
+              <ul class="max-h-48 overflow-auto rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+                @for (centro of centros; track centro) {
+                  <li (click)="selectSede(centro)" class="cursor-pointer select-none relative py-2 pl-3 pr-9 text-gray-900 hover:bg-indigo-600 hover:text-white">
+                    <span class="block truncate">{{ centro }}</span>
+                  </li>
+                }
+              </ul>
+            </div>
+          }
+        </div>
+        <div><label class="block text-sm font-medium text-gray-700">Tipo de Evaluación</label>
+          <select formControlName="tipo_evaluacion" class="mt-1 w-full rounded-lg border border-gray-300 shadow-sm p-2">
+            <option value="" disabled>Seleccione...</option>
+            <option value ="Pre Ocupacional"> Pre Ocupacional </option>
+            <option value ="Ocupacional"> Ocupacional </option>
+          </select></div>
+        <div><label class="block text-sm font-medium text-gray-700">Fecha de Atención</label><input formControlName="fecha_atencion" type="date" class="mt-1 w-full rounded-lg border border-gray-300 shadow-sm p-2"></div>
+        <div><label class="block text-sm font-medium text-gray-700">Fecha de Informe</label><input formControlName="fecha_informe" type="date" class="mt-1 w-full rounded-lg border border-gray-300 shadow-sm p-2"></div>
+        <div><label class="block text-sm font-medium text-gray-700">Fecha de Nacimiento</label><input formControlName="fecha_nacimiento" type="date" class="mt-1 w-full rounded-lg border border-gray-300 shadow-sm p-2"></div>
+        <div><label class="block text-sm font-medium text-gray-700">Asignar a Faena</label>
+          <select formControlName="faenaId" class="mt-1 w-full rounded-lg border border-gray-300 shadow-sm p-2">
+            <option value="" disabled>Seleccione...</option>
+            @for (faena of faenas$ | async; track faena.id) {
+              <option [value]="faena.id">{{ faena.nombre }}</option>
+            }
+          </select>
+        </div>
+        <div class="md:col-span-2"><p class="text-sm text-green-600">{{ manualMsg }}</p><button type="submit" [disabled]="manualForm.invalid" class="rounded-lg bg-indigo-600 px-4 py-2 text-white disabled:opacity-50">Guardar Trabajador</button></div>
+      </form>
+    </div>
+
+    <!-- Sección 2: Importación Masiva -->
+    <div class="rounded-lg bg-white p-6 shadow-md">
+      <h2 class="text-xl font-semibold border-b pb-2">Importar Trabajadores desde Excel</h2>
+      <form [formGroup]="bulkForm" (ngSubmit)="submitBulk()" class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
+        <div><label class="block text-sm font-medium text-gray-700">Asignar TODOS a la Faena</label>
+          <select formControlName="faenaId" class="mt-1 w-full rounded-lg border border-gray-300 shadow-sm p-2">
+            <option value="" disabled>Seleccione...</option>
+            @for (faena of faenas$ | async; track faena.id) {
+              <option [value]="faena.id">{{ faena.nombre }}</option>
+            }
+          </select>
+        </div>
+        <div><label class="block text-sm font-medium text-gray-700">Archivo Excel (.xlsx)</label><input formControlName="file" type="file" (change)="onFileSelected($event)" accept=".xlsx, .xls" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"></div>
+
+        <!-- ✅ Bloque para mostrar mensajes de feedback y errores de validación -->
+        <div class="md:col-span-2 space-y-2">
+          @if (bulkMsg) {
+            <p [ngClass]="bulkErrors.length > 0 ? 'text-red-600' : 'text-green-600'" class="text-sm font-semibold">
+              {{ bulkMsg }}
+            </p>
+          }
+          @if (bulkErrors.length > 0) {
+            <ul class="list-disc list-inside space-y-1 rounded-md bg-red-50 p-3 text-sm text-red-700">
+              @for (error of bulkErrors; track $index) {
+                <li>{{ error }}</li>
+              }
+            </ul>
+          }
+          <button type="submit" [disabled]="bulkForm.invalid" class="rounded-lg bg-indigo-600 px-4 py-2 text-white disabled:opacity-50">Importar Archivo</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Sección 3: Eliminar Trabajador -->
+    <div class="rounded-lg bg-white p-6 shadow-md">
+      <h2 class="text-xl font-semibold border-b pb-2 text-red-600">Eliminar Trabajador</h2>
+      <form [formGroup]="deleteForm" (ngSubmit)="submitDelete()" class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
+        <div><label class="block text-sm font-medium text-gray-700">Buscar por RUT / Pasaporte</label><input formControlName="rut" class="mt-1 w-full rounded-lg border border-gray-300 shadow-sm p-2"></div>
+        <div class="flex items-end"><p class="text-sm text-red-600">{{ deleteMsg }}</p><button type="submit" [disabled]="deleteForm.invalid" class="ml-auto rounded-lg bg-red-600 px-4 py-2 text-white disabled:opacity-50">Eliminar</button></div>
+      </form>
+    </div>
+  </div>
+</div>
