@@ -13,7 +13,7 @@ export interface Empresa {
   providedIn: 'root'
 })
 export class UsuarioService {
-  private readonly apiUrl = `${environment.apiUrl}/usuario`;
+  private readonly apiUrl = '/api/usuario';
 
   constructor(private http: HttpClient) { }
 

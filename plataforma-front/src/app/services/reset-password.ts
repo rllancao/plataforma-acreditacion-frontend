@@ -11,7 +11,7 @@ import { environment } from '../../environments/environment';
 })
 // Por convención, los nombres de clases usan PascalCase
 export class ResetPassService {
-  private readonly apiUrl = environment.apiUrl;
+  private readonly apiUrl = '/api';
 
   constructor(private http: HttpClient) { }
 

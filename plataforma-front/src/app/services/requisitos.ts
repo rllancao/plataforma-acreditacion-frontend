@@ -16,7 +16,7 @@ export interface SeccionRequisito {
 
 @Injectable({ providedIn: 'root' })
 export class RequisitosService {
-  private readonly apiUrl = `${environment.apiUrl}/requisitos`;
+  private readonly apiUrl = '/api/requisitos';
   constructor(private http: HttpClient) {}
 
   getRequisitos(): Observable<SeccionRequisito[]> {

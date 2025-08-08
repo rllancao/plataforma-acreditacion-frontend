@@ -51,7 +51,7 @@ export interface Trabajador {
   providedIn: 'root'
 })
 export class TrabajadorService {
-  private readonly apiUrl = `${environment.apiUrl}/trabajadores`;
+  private readonly apiUrl = '/api/trabajadores';
   private platformId = inject(PLATFORM_ID); // Inyectar PLATFORM_ID
 
   constructor(private http: HttpClient) { }

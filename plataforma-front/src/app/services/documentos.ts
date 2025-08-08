@@ -19,7 +19,7 @@ export interface Documentos {
   providedIn: 'root'
 })
 export class DocumentoService {
-  private readonly apiUrl = `${environment.apiUrl}/documentos`;
+  private readonly apiUrl = '/api/documentos';
   private platformId = inject(PLATFORM_ID); // Inyectar PLATFORM_ID
 
   constructor(private http: HttpClient) { }

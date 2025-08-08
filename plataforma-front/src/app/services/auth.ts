@@ -18,7 +18,7 @@ interface DecodedToken {
   providedIn: 'root'
 })
 export class AuthService {
-  private readonly apiUrl = environment.apiUrl;
+  private readonly apiUrl = '/api';
   private platformId = inject(PLATFORM_ID); // Inyectar PLATFORM_ID para detectar el entorno
 
   constructor(private http: HttpClient) { }

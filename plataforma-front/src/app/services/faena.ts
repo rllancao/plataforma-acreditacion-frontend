@@ -32,7 +32,7 @@ export interface CreateFaenaPayload {
   providedIn: 'root'
 })
 export class FaenaService {
-  private readonly apiUrl = `${environment.apiUrl}/faenas`;
+  private readonly apiUrl = '/api/faenas';
   private platformId = inject(PLATFORM_ID); // Inyectar PLATFORM_ID
 
   constructor(private http: HttpClient) { }
