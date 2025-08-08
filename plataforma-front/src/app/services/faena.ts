@@ -2,6 +2,7 @@ import { Injectable, inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 // Interfaz para el objeto Usuario anidado dentro de Faena
 interface Usuario {
@@ -31,7 +32,7 @@ export interface CreateFaenaPayload {
   providedIn: 'root'
 })
 export class FaenaService {
-  private readonly apiUrl = 'http://localhost:8000/faenas';
+  private readonly apiUrl = `${environment.apiUrl}/faenas`;
   private platformId = inject(PLATFORM_ID); // Inyectar PLATFORM_ID
 
   constructor(private http: HttpClient) { }

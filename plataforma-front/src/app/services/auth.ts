@@ -3,6 +3,7 @@ import { isPlatformBrowser } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
 import { jwtDecode } from 'jwt-decode';
+import { environment } from '../../environments/environment';
 
 // Interfaz para el payload decodificado del token
 interface DecodedToken {
@@ -17,7 +18,7 @@ interface DecodedToken {
   providedIn: 'root'
 })
 export class AuthService {
-  private readonly apiUrl = 'http://localhost:8000';
+  private readonly apiUrl = environment.apiUrl;
   private platformId = inject(PLATFORM_ID); // Inyectar PLATFORM_ID para detectar el entorno
 
   constructor(private http: HttpClient) { }

@@ -2,7 +2,8 @@ import { Injectable, inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
-import { Documentos } from './documentos'; // Asegúrate de que la ruta sea correcta
+import { Documentos } from './documentos';
+import { environment } from '../../environments/environment';
 
 // --- Interfaces ---
 interface Usuario {
@@ -50,7 +51,7 @@ export interface Trabajador {
   providedIn: 'root'
 })
 export class TrabajadorService {
-  private readonly apiUrl = 'http://localhost:8000/trabajadores';
+  private readonly apiUrl = `${environment.apiUrl}/trabajadores`;
   private platformId = inject(PLATFORM_ID); // Inyectar PLATFORM_ID
 
   constructor(private http: HttpClient) { }
