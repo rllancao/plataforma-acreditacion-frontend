@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { environment } from '../../environments/environment';
+import { environmentProd } from '../../environments/environment.prod';
 
 // Interfaz para el objeto Empresa simplificado
 export interface Empresa {
@@ -13,7 +13,7 @@ export interface Empresa {
   providedIn: 'root'
 })
 export class UsuarioService {
-  private readonly apiUrl = '/api/usuario';
+  private readonly apiUrl = `${environmentProd.apiUrl}/usuario`;
 
   constructor(private http: HttpClient) { }
 

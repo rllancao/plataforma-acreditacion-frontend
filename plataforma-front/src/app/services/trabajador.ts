@@ -3,7 +3,7 @@ import { isPlatformBrowser } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { Documentos } from './documentos';
-import { environment } from '../../environments/environment';
+import { environmentProd } from '../../environments/environment.prod';
 
 // --- Interfaces ---
 interface Usuario {
@@ -51,7 +51,7 @@ export interface Trabajador {
   providedIn: 'root'
 })
 export class TrabajadorService {
-  private readonly apiUrl = '/api/trabajadores';
+  private readonly apiUrl = `${environmentProd.apiUrl}/trabajadores`;
   private platformId = inject(PLATFORM_ID); // Inyectar PLATFORM_ID
 
   constructor(private http: HttpClient) { }
