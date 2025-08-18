@@ -2,7 +2,7 @@ import { Injectable, inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
-import { environmentProd } from '../../environments/environment.prod';
+import { environment } from '../../environments/environment';
 
 export interface Documentos {
   id: number;
@@ -19,7 +19,7 @@ export interface Documentos {
   providedIn: 'root'
 })
 export class DocumentoService {
-  private readonly apiUrl = `${environmentProd.apiUrl}/documentos`;
+  private readonly apiUrl = `${environment.apiUrl}/documentos`;
   private platformId = inject(PLATFORM_ID); // Inyectar PLATFORM_ID
 
   constructor(private http: HttpClient) { }

@@ -4,14 +4,14 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { HttpHeaders } from '@angular/common/http';
-import { environmentProd } from '../../environments/environment.prod';
+import { environment} from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 // Por convención, los nombres de clases usan PascalCase
 export class ResetPassService {
-  private readonly apiUrl = `${environmentProd.apiUrl}`;
+  private readonly apiUrl = `${environment.apiUrl}`;
 
   constructor(private http: HttpClient) { }
 
