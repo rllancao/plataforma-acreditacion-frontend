@@ -8,7 +8,6 @@ import { switchMap } from 'rxjs/operators';
 import { saveAs } from 'file-saver';
 
 import { Trabajador, TrabajadorService, DocumentoRequisito } from '../services/trabajador';
-// ✅ CORRECCIÓN: Se usa el nombre de archivo y tipo correctos
 import { Documentos, DocumentoService } from '../services/documentos';
 import { AuthService } from '../services/auth';
 import { VolverAtras } from '../volver-atras/volver-atras';
@@ -31,11 +30,10 @@ export interface DocumentoChecklistItem {
 })
 export class DetalleTrabajadorComponent implements OnInit, OnDestroy {
   trabajador: Trabajador | null = null;
-  // ✅ CORRECCIÓN: Se usa el tipo 'Documentos' (plural)
   documentos: Documentos[] = [];
   documentosPorSeccion: { [seccion: string]: Documentos[] } = {};
   userRole: 'admin' | 'empresa' | null = null;
-  backLink: any[] | null = null; //
+  backLink: any[] | null = null;
 
   uploadForm: FormGroup;
   selectedFile: File | null = null;
@@ -87,7 +85,6 @@ export class DetalleTrabajadorComponent implements OnInit, OnDestroy {
         this.trabajador = result.trabajador;
         this.documentos = result.documentos;
 
-        // ✅ Construir el enlace de vuelta al dashboard de la faena
         if (this.trabajador.faenaRelacion?.id) {
           this.backLink = ['/dashboard', this.trabajador.faenaRelacion.id];
         }
@@ -145,14 +142,6 @@ export class DetalleTrabajadorComponent implements OnInit, OnDestroy {
       nombreControl?.disable();
     }
     nombreControl?.reset('');
-  }
-
-  groupDocumentsBySection(): void {
-    // ✅ CORRECCIÓN: Se usa el tipo 'Documentos'
-    this.documentosPorSeccion = this.documentos.reduce((acc, doc) => {
-      (acc[doc.seccion] = acc[doc.seccion] || []).push(doc);
-      return acc;
-    }, {} as { [seccion: string]: Documentos[] });
   }
 
   createDocsChart(): void {
@@ -243,11 +232,17 @@ export class DetalleTrabajadorComponent implements OnInit, OnDestroy {
     formData.append('trabajadorId', this.trabajador.id.toString());
 
     this.documentoService.uploadDocument(formData).subscribe({
-      next: () => {
+      // ✅ CORRECCIÓN: Se recibe el nuevo documento desde el backend
+      next: (newlyCreatedDocument: Documentos) => {
         this.successMsg = '¡Documento subido exitosamente!';
         this.uploadForm.reset({ seccion: '', nombre: { value: '', disabled: true } });
         this.selectedFile = null;
-        this.loadData();
+
+        // Se actualiza el estado del componente directamente, sin volver a llamar a la API
+        this.documentos.push(newlyCreatedDocument);
+        this.buildChecklist();
+        this.createDocsChart();
+        this.cd.detectChanges(); // Se asegura de que la vista se actualice
       },
       error: (err) => {
         this.errorMsg = 'Error al subir el documento.';
@@ -257,10 +252,19 @@ export class DetalleTrabajadorComponent implements OnInit, OnDestroy {
   }
 
   viewDocument(docId: number): void {
-    this.documentoService.viewDocument(docId).subscribe(blob => {
-      const fileURL = URL.createObjectURL(blob);
-      window.open(fileURL, '_blank');
-    });
+    const url = this.documentoService.getViewDocumentUrl(docId);
+
+    // Obtenemos el token para añadirlo a la URL, ya que window.open
+    // no usa el interceptor de Angular.
+    const token = localStorage.getItem('access_token');
+
+    if (token) {
+      // El backend está configurado para leer el token desde este parámetro.
+      window.open(`${url}?token=${token}`, '_blank');
+    } else {
+      console.error('No se encontró el token de autenticación.');
+      // Opcional: redirigir al login o mostrar un error.
+    }
   }
 
   deleteDocument(docId: number): void {
