@@ -33,7 +33,7 @@ export class DetalleTrabajadorComponent implements OnInit, OnDestroy {
   trabajador: Trabajador | null = null;
   documentos: Documentos[] = [];
   documentosPorSeccion: { [seccion: string]: Documentos[] } = {};
-  userRole: 'admin' | 'empresa' | null = null;
+  userRole: 'admin' | 'empresa' | 'empleado' | 'superAdmin' | null = null;
   backLink: any[] | null = null;
 
   uploadForm: FormGroup;
@@ -70,12 +70,15 @@ export class DetalleTrabajadorComponent implements OnInit, OnDestroy {
     this.fechaInformeForm = this.fb.group({
       fecha_informe: ['', Validators.required]
     });
+    console.log('[DEBUG] Constructor: backLink inicial es', this.backLink);
 
   }
 
   ngOnInit(): void {
     this.userRole = this.authService.getUserRole();
+    console.log('[DEBUG] ngOnInit: Iniciando carga de datos...');
     this.loadData();
+
   }
 
 
@@ -83,6 +86,7 @@ export class DetalleTrabajadorComponent implements OnInit, OnDestroy {
     this.routeSub = this.route.paramMap.pipe(
       switchMap(params => {
         const id = Number(params.get('id'));
+        console.log(`[DEBUG] Obtenido ID de la URL: ${id}`);
         if (!id) return forkJoin({ trabajador: of(null), documentos: of([]) });
 
         return forkJoin({
@@ -91,21 +95,34 @@ export class DetalleTrabajadorComponent implements OnInit, OnDestroy {
         });
       })
     ).subscribe(result => {
+      console.log('[DEBUG] Datos recibidos de la API:', result);
       if (result.trabajador) {
         this.trabajador = result.trabajador;
         this.documentos = result.documentos;
 
         if (this.trabajador.faenaRelacion?.id) {
+          console.log(`[DEBUG] Faena ID encontrada: ${this.trabajador.faenaRelacion.id}. Construyendo backLink...`);
           this.backLink = ['/dashboard', this.trabajador.faenaRelacion.id];
+          console.log('[DEBUG] backLink asignado a:', this.backLink);
+        } else {
+          console.error('[DEBUG] ¡ERROR! No se encontró faenaRelacion.id en el objeto trabajador. El backLink no se pudo construir.');
+          // Como fallback, podrías asignar una ruta por defecto aquí si es necesario
+          // this.backLink = ['/select-faena'];
         }
+        console.log('[DEBUG] backLink asignado de nuevo a:', this.backLink);
 
         this.buildChecklist();
         this.buildRequisitosMap();
+        console.log('[DEBUG] Forzando detección de cambios...');
         this.cd.detectChanges();
+        console.log('[DEBUG] Despues de forzar: backLink asignado a:', this.backLink);
+        console.log('[DEBUG] Detección de cambios completada.');
         this.createDocsChart();
+        console.log('[DEBUG] Despues de grafico: backLink asignado a:', this.backLink);
       }
     });
   }
+
 
   toggleEditFechaInforme(isEditing: boolean): void {
     this.isEditingFechaInforme = isEditing;
@@ -116,6 +133,7 @@ export class DetalleTrabajadorComponent implements OnInit, OnDestroy {
       });
     }
   }
+
 
   onUpdateFechaInforme(): void {
     if (!this.trabajador || this.fechaInformeForm.invalid) {

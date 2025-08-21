@@ -1,6 +1,6 @@
 <div class="min-h-screen bg-gray-100">
   <header class="flex items-center p-4 sm:p-6 lg:p-8">
-    <app-volver-atras [customBackLink]="backLink"></app-volver-atras>
+    <app-volver-atras *ngIf="backLink" [customBackLink]="backLink"></app-volver-atras>
   </header>
 
   <!-- Contenedor principal de la grilla -->
@@ -68,7 +68,7 @@
         <h2 class="text-xl font-semibold">Documentos</h2>
         <button
           (click)="downloadAll()"
-          *ngIf="userRole === 'empresa' || userRole === 'admin'"
+          *ngIf="userRole === 'empresa' || userRole === 'admin' || userRole === 'empleado'"
           class="rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700"
         >
           Descargar Todo (.zip)

@@ -74,6 +74,10 @@ export class TrabajadorService {
     return this.http.post(this.apiUrl, payload);
   }
 
+  getAllTrabajadores(): Observable<Trabajador[]> {
+    return this.http.get<Trabajador[]>(`${this.apiUrl}/all`);
+  }
+
   createTrabajadoresBulk(formData: FormData): Observable<any> {
     return this.http.post(`${this.apiUrl}/bulk`, formData);
   }

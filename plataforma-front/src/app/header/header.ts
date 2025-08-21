@@ -27,7 +27,7 @@ export class HeaderComponent { // Se elimina 'implements OnInit'
 
   // ✅ CORRECCIÓN: Se convierte 'userRole' en un getter.
   // Esto asegura que el rol se verifique cada vez que Angular actualiza la vista.
-  get userRole(): 'admin' | 'empresa' | null {
+  get userRole(): 'admin' | 'empresa' | 'empleado' | 'superAdmin' | null {
     return this.authService.getUserRole();
   }
 

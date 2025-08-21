@@ -1,0 +1,42 @@
+<div class="min-h-screen bg-gray-100 p-8">
+  <header class="mb-8 flex items-center">
+    <app-volver-atras></app-volver-atras>
+    <h1 class="ml-4 text-3xl font-bold text-gray-800">Ingresar Nuevo Usuario</h1>
+  </header>
+
+  <form [formGroup]="userForm" (ngSubmit)="onSubmit()" class="mx-auto max-w-2xl space-y-6 rounded-lg bg-white p-8 shadow-md">
+    <div>
+      <label class="block text-sm font-medium">Nombre Completo</label>
+      <input formControlName="nombre" type="text" class="mt-1 w-full rounded-lg border border-gray-300 shadow-sm p-2">
+    </div>
+    <div>
+      <label class="block text-sm font-medium">Correo Electrónico</label>
+      <input formControlName="email" type="email" class="mt-1 w-full rounded-lg border border-gray-300 shadow-sm p-2">
+    </div>
+    <div>
+      <label class="block text-sm font-medium">Contraseña</label>
+      <input formControlName="password" type="password" class="mt-1 w-full rounded-lg border border-gray-300 shadow-sm p-2">
+    </div>
+
+    <div>
+      <label class="block text-lg font-semibold">Asignar Faenas</label>
+      <p class="text-sm text-gray-500">Selecciona las faenas a las que este usuario tendrá acceso.</p>
+      <div formArrayName="faenas" class="mt-4 space-y-2">
+        <label *ngFor="let faena of faenas; let i = index" class="flex items-center space-x-3 rounded-md p-2 hover:bg-gray-50">
+          <input type="checkbox" [formControlName]="i" class="h-4 w-4 rounded border-gray-300 text-indigo-600">
+          <span class="text-sm text-gray-700">{{ faena.nombre }}</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- ✅ AÑADIDO: Mensaje de éxito -->
+    <p *ngIf="successMsg" class="text-md text-green-600">{{ successMsg }}</p>
+    <p *ngIf="errorMsg" class="text-md text-red-600">{{ errorMsg }}</p>
+
+    <div class="flex justify-end">
+      <button type="submit" [disabled]="userForm.invalid" class="rounded-lg bg-indigo-600 px-8 py-3 font-medium text-white hover:bg-indigo-700 disabled:opacity-50">
+        Crear Usuario
+      </button>
+    </div>
+  </form>
+</div>

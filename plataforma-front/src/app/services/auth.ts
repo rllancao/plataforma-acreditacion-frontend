@@ -9,7 +9,7 @@ import { environment } from '../../environments/environment';
 interface DecodedToken {
   userId: number;
   email: string;
-  role: 'admin' | 'empresa';
+  role: 'admin' | 'empresa' | 'empleado' | 'superAdmin' | null;
   iat: number;
   exp: number;
 }
@@ -35,7 +35,7 @@ export class AuthService {
     );
   }
 
-  getUserRole(): 'admin' | 'empresa' | null {
+  getUserRole(): 'admin' | 'empresa' | 'empleado' | 'superAdmin' | null {
     // Solo acceder a localStorage si estamos en el navegador
     if (isPlatformBrowser(this.platformId)) {
       const token = localStorage.getItem('access_token');

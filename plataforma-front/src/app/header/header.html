@@ -17,8 +17,13 @@
             <a routerLink="/admin/ingresar-faena" class="text-sm font-medium transition hover:text-indigo-300">Ingresar Faena</a>
             <a routerLink="/admin/ingresar-empresa" class="text-sm font-medium transition hover:text-indigo-300">Ingresar Empresa</a>
             <a routerLink="/admin/ingresar-trabajador" class="text-sm font-medium transition hover:text-indigo-300">Ingresar Trabajador</a>
+            <a routerLink="/admin/database" class="text-sm font-medium transition hover:text-indigo-300">Base de Datos</a>
           }
           @if (userRole === 'empresa') {
+            <a routerLink="/select-faena" class="text-sm font-medium transition hover:text-indigo-300">Seleccionar Faena</a>
+            <a routerLink="empresa/ingresar-empleado" class="text-sm font-medium transition hover:text-indigo-300">Ingresar Empleado</a>
+          }
+          @if (userRole === 'empleado') {
             <a routerLink="/select-faena" class="text-sm font-medium transition hover:text-indigo-300">Seleccionar Faena</a>
           }
         </div>

@@ -25,4 +25,8 @@ export class UsuarioService {
   createEmpresa(payload: any): Observable<any> {
     return this.http.post(`${this.apiUrl}/empresa`, payload);
   }
+
+  createEmpleado(payload: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/empleado`, payload);
+  }
 }

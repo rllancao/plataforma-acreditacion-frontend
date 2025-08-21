@@ -57,8 +57,12 @@ export class Login {
         if (userRole === 'admin') {
           // Si es admin, redirige al panel de administración
           this.router.navigate(['/admin']);
-        } else {
-          // Si es empresa, redirige al selector de faenas
+        }
+        else if (userRole === 'empresa'){
+          this.router.navigate(['/empresa-dashboard']);
+        }
+        else {
+          // Si es empleado, redirige al selector de faenas
           this.router.navigate(['/select-faena']);
         }
       },
