@@ -22,4 +22,9 @@ export class RequisitosService {
   getRequisitos(): Observable<SeccionRequisito[]> {
     return this.http.get<SeccionRequisito[]>(this.apiUrl);
   }
+
+  createRequisito(payload: { seccionId: number; nombre: string }): Observable<DocumentoRequisito> {
+    return this.http.post<DocumentoRequisito>(this.apiUrl, payload);
+  }
+
 }

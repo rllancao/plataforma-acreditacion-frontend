@@ -24,7 +24,7 @@
             <div><dt class="text-xs font-medium text-gray-500">Nacimiento</dt><dd class="text-sm text-gray-900">{{ trabajador.fecha_nacimiento | date:'dd/MM/yyyy' }} ({{ trabajador.edad }} años)</dd></div>
             <div><dt class="text-xs font-medium text-gray-500">Género</dt><dd class="text-sm text-gray-900">{{ trabajador.genero }}</dd></div>
             <div><dt class="text-xs font-medium text-gray-500">Dirección</dt><dd class="text-sm text-gray-900">{{ trabajador.direccion }}</dd></div>
-            <div><dt class="text-xs font-medium text-gray-500">Fecha Atención</dt><dd class="text-sm text-gray-900">{{ trabajador.fecha_atencion | date:'dd/MM/yyyy' }}</dd></div>
+            <div><dt class="text-xs font-medium text-gray-500">Fecha Inicio de Proceso</dt><dd class="text-sm text-gray-900">{{ trabajador.fecha_atencion | date:'dd/MM/yyyy' }}</dd></div>
           </div>
           <!-- Datos Laborales y de Evaluación -->
           <div class="space-y-4">
@@ -35,7 +35,21 @@
             <h3 class="mt-4 text-md font-semibold text-gray-700">Evaluación</h3>
             <div><dt class="text-xs font-medium text-gray-500">Tipo</dt><dd class="text-sm text-gray-900">{{ trabajador.tipo_evaluacion }}</dd></div>
             <div><dt class="text-xs font-medium text-gray-500">Sede</dt><dd class="text-sm text-gray-900">{{ trabajador.sede_evaluacion }}</dd></div>
-            <div><dt class="text-xs font-medium text-gray-500">Fecha Informe</dt><dd class="text-sm text-gray-900">{{ trabajador.fecha_informe | date:'dd/MM/yyyy' }}</dd></div>
+            <div>
+              <dt class="text-xs font-medium text-gray-500">Fecha Término de Proceso</dt>
+              <div *ngIf="!isEditingFechaInforme" class="flex items-center gap-x-4 mt-1">
+                <dd class="text-sm text-gray-900">{{ trabajador.fecha_informe | date:'dd/MM/yyyy' }}</dd>
+                <button *ngIf="userRole === 'admin'" (click)="toggleEditFechaInforme(true)" class="text-xs text-indigo-600 hover:underline">Editar</button>
+              </div>
+              <!-- ✅ CORRECCIÓN: Se añaden clases para responsividad -->
+              <form *ngIf="userRole === 'admin' && isEditingFechaInforme" [formGroup]="fechaInformeForm" (ngSubmit)="onUpdateFechaInforme()" class="mt-1 flex flex-col sm:flex-row items-center gap-2">
+                <input type="date" formControlName="fecha_informe" class="w-full sm:flex-1 rounded-lg border border-gray-300 shadow-sm p-2 text-sm">
+                <div class="flex w-full sm:w-auto gap-x-2">
+                  <button type="submit" [disabled]="fechaInformeForm.invalid" class="flex-1 sm:flex-none rounded-md bg-indigo-600 px-3 py-2 text-xs font-semibold text-white shadow-sm hover:bg-indigo-500 disabled:opacity-50">Guardar</button>
+                  <button type="button" (click)="toggleEditFechaInforme(false)" class="flex-1 sm:flex-none rounded-md bg-gray-200 px-3 py-2 text-xs font-semibold text-gray-700 shadow-sm hover:bg-gray-300">Cancelar</button>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
       </div>
@@ -115,6 +129,7 @@
                 <div class="flex items-center gap-2">
                   <button *ngIf="item.documentoSubido" (click)="viewDocument(item.documentoSubido.id)" class="text-sm text-indigo-600 hover:underline">Ver</button>
                   <button *ngIf="!item.documentoSubido && userRole === 'admin'" (click)="triggerFileUpload(item.requisito)" class="text-sm text-blue-600 hover:underline">Subir</button>
+                  <button *ngIf="!item.documentoSubido && userRole === 'admin'" (click)="marcarComoNoAplica(item)" class="text-sm text-blue-600 hover:underline">No aplica</button>
                   <button *ngIf="userRole === 'admin' && item.documentoSubido" (click)="deleteDocument(item.documentoSubido.id)" class="ml-2 text-sm text-red-600 hover:underline">Eliminar</button>
                 </div>
 

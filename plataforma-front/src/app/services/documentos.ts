@@ -31,6 +31,10 @@ export class DocumentoService {
     return of([]);
   }
 
+  marcarComoNoAplica(payload: { trabajadorId: number; nombre: string; seccion: string; }): Observable<Documentos> {
+    return this.http.post<Documentos>(`${this.apiUrl}/no-aplica`, payload);
+  }
+
   uploadDocument(formData: FormData): Observable<any> {
     return this.http.post(`${this.apiUrl}/upload`, formData);
   }

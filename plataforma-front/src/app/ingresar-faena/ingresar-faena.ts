@@ -16,8 +16,12 @@ import { VolverAtras } from '../volver-atras/volver-atras';
 })
 export class IngresarFaenaComponent implements OnInit {
   faenaForm: FormGroup;
+  nuevoRequisitoForm: FormGroup;
   seccionesRequisitos: SeccionRequisito[] = [];
   empresas$!: Observable<Empresa[]>;
+
+  requisitoSuccessMsg = '';
+  requisitoErrorMsg = '';
 
   private requisitoIdMap: number[] = [];
 
@@ -35,6 +39,12 @@ export class IngresarFaenaComponent implements OnInit {
       usuarioId: ['', Validators.required],
       requisitos: this.fb.array([]),
     });
+
+    this.nuevoRequisitoForm = this.fb.group({
+      seccionId: ['', Validators.required],
+      nombre: ['', Validators.required],
+    });
+
   }
 
   ngOnInit(): void {
@@ -100,6 +110,50 @@ export class IngresarFaenaComponent implements OnInit {
       alert('¡Faena creada exitosamente!');
       this.router.navigate(['/admin']);
     });
+  }
+
+  loadRequisitos(): void {
+    this.requisitosService.getRequisitos().subscribe(data => {
+      this.seccionesRequisitos = data;
+      this.buildRequisitosCheckboxes();
+      this.cd.detectChanges();
+    });
+  }
+
+  onNuevoRequisitoSubmit(): void {
+    if (this.nuevoRequisitoForm.invalid) return;
+    this.clearRequisitoMessages();
+
+    const formValue = this.nuevoRequisitoForm.value;
+    const payload = {
+      nombre: formValue.nombre,
+      seccionId: Number(formValue.seccionId)
+    };
+
+    this.requisitosService.createRequisito(payload).subscribe({
+      next: () => {
+        this.requisitoSuccessMsg = `El requisito "${payload.nombre}" ha sido añadido exitosamente.`;
+        this.nuevoRequisitoForm.reset({ seccionId: '', nombre: '' });
+        this.loadRequisitos();
+
+        // ✅ CORRECCIÓN: Se fuerza la detección de cambios para mostrar el mensaje
+        this.cd.detectChanges();
+
+        setTimeout(() => {
+          this.clearRequisitoMessages();
+          this.cd.detectChanges(); // También es bueno limpiar el mensaje en la zona de Angular
+        }, 5000);
+      },
+      error: (err) => {
+        this.requisitoErrorMsg = 'Error al añadir el requisito.';
+        console.error(err);
+        this.cd.detectChanges();
+      }
+    });
+  }
+  clearRequisitoMessages(): void {
+    this.requisitoSuccessMsg = '';
+    this.requisitoErrorMsg = '';
   }
 
   getFormControlIndex(seccionIndex: number, docIndex: number): number {

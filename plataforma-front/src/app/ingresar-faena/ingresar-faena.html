@@ -4,6 +4,8 @@
     <h1 class="ml-4 text-3xl font-bold text-gray-800">Ingresar Nueva Faena</h1>
   </header>
 
+
+
   <form [formGroup]="faenaForm" (ngSubmit)="onSubmit()" class="mx-auto max-w-4xl space-y-8">
     <!-- Datos Básicos de la Faena -->
     <div class="rounded-lg bg-white p-6 shadow-md">
@@ -62,4 +64,32 @@
       </button>
     </div>
   </form>
+
+  <div class="rounded-lg bg-white p-6 my-4 shadow-md">
+    <h2 class="text-xl font-semibold">Añadir Nuevo Requisito</h2>
+    <p class="text-sm text-gray-500">Si un documento no está en la lista, puedes añadirlo aquí. Se guardará para futuras faenas.</p>
+    <form [formGroup]="nuevoRequisitoForm" (ngSubmit)="onNuevoRequisitoSubmit()" class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
+      <div>
+        <label class="block text-sm font-medium">Sección</label>
+        <select formControlName="seccionId" class="mt-1 w-full rounded-lg border border-gray-300 shadow-sm p-2">
+          <option value="" disabled>Seleccione...</option>
+          <option *ngFor="let seccion of seccionesRequisitos" [value]="seccion.id">{{ seccion.nombre }}</option>
+        </select>
+      </div>
+      <div class="md:col-span-2">
+        <label class="block text-sm font-medium">Nombre del Nuevo Documento</label>
+        <div class="flex items-center gap-x-2">
+          <input formControlName="nombre" type="text" placeholder="Ej: Certificado de Altura" class="mt-1 w-full rounded-lg border border-gray-300 shadow-sm p-2">
+          <button type="submit" [disabled]="nuevoRequisitoForm.invalid" class="mt-1 rounded-md bg-green-600 px-4 py-2 text-white disabled:opacity-50">
+            Añadir
+          </button>
+        </div>
+      </div>
+      <div class="md:col-span-3">
+        <p *ngIf="requisitoSuccessMsg" class="text-sm text-green-600">{{ requisitoSuccessMsg }}</p>
+        <p *ngIf="requisitoErrorMsg" class="text-sm text-red-600">{{ requisitoErrorMsg }}</p>
+      </div>
+    </form>
+  </div>
+
 </div>

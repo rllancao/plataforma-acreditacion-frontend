@@ -6,6 +6,7 @@ import { Chart, registerables } from 'chart.js';
 import { forkJoin, Subscription, of } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
 import { saveAs } from 'file-saver';
+import { FormBuilder} from '@angular/forms';
 
 import { Trabajador, TrabajadorService, DocumentoRequisito } from '../services/trabajador';
 import { Documentos, DocumentoService } from '../services/documentos';
@@ -36,6 +37,8 @@ export class DetalleTrabajadorComponent implements OnInit, OnDestroy {
   backLink: any[] | null = null;
 
   uploadForm: FormGroup;
+  fechaInformeForm: FormGroup;
+  isEditingFechaInforme = false;
   selectedFile: File | null = null;
   requisitosPorSeccion: { [key: string]: DocumentoRequisito[] } = {};
   nombresDocumentosDisponibles: DocumentoRequisito[] = [];
@@ -55,19 +58,26 @@ export class DetalleTrabajadorComponent implements OnInit, OnDestroy {
     private trabajadorService: TrabajadorService,
     private documentoService: DocumentoService,
     private authService: AuthService,
-    private cd: ChangeDetectorRef
+    private cd: ChangeDetectorRef,
+    private fb: FormBuilder
   ) {
     this.uploadForm = new FormGroup({
       seccion: new FormControl('', [Validators.required]),
       nombre: new FormControl({ value: '', disabled: true }, [Validators.required]),
       file: new FormControl(null, [Validators.required]),
     });
+
+    this.fechaInformeForm = this.fb.group({
+      fecha_informe: ['', Validators.required]
+    });
+
   }
 
   ngOnInit(): void {
     this.userRole = this.authService.getUserRole();
     this.loadData();
   }
+
 
   loadData(): void {
     this.routeSub = this.route.paramMap.pipe(
@@ -93,6 +103,60 @@ export class DetalleTrabajadorComponent implements OnInit, OnDestroy {
         this.buildRequisitosMap();
         this.cd.detectChanges();
         this.createDocsChart();
+      }
+    });
+  }
+
+  toggleEditFechaInforme(isEditing: boolean): void {
+    this.isEditingFechaInforme = isEditing;
+    if (!isEditing && this.trabajador) {
+      // Si se cancela, se resetea el formulario al valor original
+      this.fechaInformeForm.patchValue({
+        fecha_informe: formatDate(this.trabajador.fecha_informe, 'yyyy-MM-dd', 'en-US')
+      });
+    }
+  }
+
+  onUpdateFechaInforme(): void {
+    if (!this.trabajador || this.fechaInformeForm.invalid) {
+      return;
+    }
+    const nuevaFecha = this.fechaInformeForm.value.fecha_informe;
+    this.trabajadorService.updateFechaInforme(this.trabajador.id, nuevaFecha).subscribe({
+      next: (trabajadorActualizado) => {
+        this.trabajador!.fecha_informe = trabajadorActualizado.fecha_informe;
+        this.toggleEditFechaInforme(false); // Salir del modo de edición
+        alert('Fecha actualizada exitosamente.');
+        this.cd.detectChanges();
+      },
+      error: (err) => {
+        console.error('Error al actualizar la fecha:', err);
+        alert('No se pudo actualizar la fecha.');
+      }
+    });
+  }
+
+  marcarComoNoAplica(item: DocumentoChecklistItem): void {
+    if (!this.trabajador) return;
+
+    const payload = {
+      trabajadorId: this.trabajador.id,
+      nombre: item.requisito.nombre,
+      seccion: item.requisito.seccion.nombre,
+    };
+
+    this.documentoService.marcarComoNoAplica(payload).subscribe({
+      next: (newlyCreatedDocument) => {
+        this.successMsg = `"${item.requisito.nombre}" marcado como 'No aplica'.`;
+        this.documentos.push(newlyCreatedDocument);
+        this.buildChecklist();
+        this.createDocsChart();
+        this.cd.detectChanges();
+      },
+      error: (err) => {
+        this.errorMsg = 'Error al marcar como "No aplica".';
+        console.error(err);
+        this.cd.detectChanges();
       }
     });
   }

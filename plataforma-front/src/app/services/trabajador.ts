@@ -65,6 +65,11 @@ export class TrabajadorService {
     return of(null);
   }
 
+  updateFechaInforme(trabajadorId: number, fecha_informe: string): Observable<Trabajador> {
+    const payload = { fecha_informe };
+    return this.http.patch<Trabajador>(`${this.apiUrl}/${trabajadorId}/fecha-informe`, payload);
+  }
+
   createTrabajador(payload: any): Observable<any> {
     return this.http.post(this.apiUrl, payload);
   }
