@@ -8,6 +8,11 @@ export interface Empresa {
   id: number;
   nombre: string;
 }
+export interface Usuario {
+  id: number;
+  nombre: string;
+  email: string;
+}
 
 @Injectable({
   providedIn: 'root'

@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { RouterModule } from '@angular/router';
-import { LucideAngularModule, Briefcase, PlusCircle, Building2, UserPlus, Database } from 'lucide-angular'; // Importar UserPlus
+import { LucideAngularModule, Briefcase, PlusCircle, Building2, UserPlus, Database, Settings } from 'lucide-angular'; // Importar UserPlus
+import { AuthService } from '../services/auth'; // Asegúrate de que AuthService esté importado correctamente
 
 @Component({
   selector: 'app-admin-dashboard',
@@ -12,6 +13,13 @@ import { LucideAngularModule, Briefcase, PlusCircle, Building2, UserPlus, Databa
         <h1 class="text-3xl font-bold text-gray-800">Panel de Administración</h1>
       </header>
       <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-2">
+        @if (userRole === 'superAdmin') {
+          <a routerLink="/admin/panel" class="flex flex-col items-center justify-center rounded-lg bg-white p-8 text-center shadow-lg transition hover:bg-indigo-50">
+            <lucide-icon [img]="Settings" class="h-12 w-12 text-indigo-600"></lucide-icon>
+            <h2 class="mt-4 text-xl font-semibold">Administración</h2>
+            <p class="mt-1 text-sm text-gray-500">Gestionar usuarios y entidades.</p>
+          </a>
+        }
         <a routerLink="/admin/database" class="flex flex-col items-center justify-center rounded-lg bg-white p-8 text-center shadow-lg transition hover:bg-indigo-50 md:col-span-1 lg:col-span-1">
           <lucide-icon [img]="Database" class="h-12 w-12 text-indigo-600"></lucide-icon>
           <h2 class="mt-4 text-xl font-semibold">Base de Datos</h2>
@@ -48,4 +56,10 @@ export class AdminDashboardComponent {
   Building2 = Building2;
   UserPlus = UserPlus; // Exponer el nuevo icono
   Database = Database; // Icono para la base de datos
+  Settings = Settings; // Icono para administración
+  constructor(public authService: AuthService) {}
+
+  get userRole(): 'admin' | 'empresa' | 'empleado' | 'superAdmin' | null {
+    return this.authService.getUserRole();
+  }
 }

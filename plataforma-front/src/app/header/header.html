@@ -2,7 +2,7 @@
 <header class="bg-[#2D334E] text-white shadow-md sticky top-0 z-50">
   <nav class="container mx-auto flex h-20 items-center justify-between px-6">
     <!-- Logo/Marca - Siempre visible -->
-    <a [routerLink]="userRole === 'admin' ? ['/admin'] : (authService.isAuthenticated() ? ['/select-faena'] : ['/login'])" class="flex items-center gap-x-3 text-xl font-bold transition hover:text-indigo-300">
+    <a [routerLink]="userRole === 'admin' || userRole === 'superAdmin' ? ['/admin'] : (authService.isAuthenticated() ? ['/select-faena'] : ['/login'])" class="flex items-center gap-x-3 text-xl font-bold transition hover:text-indigo-300">
       <img src="assets/images/logo_seleccion_y_talento_blanco.png" alt="Workmed Logo" class="h-52 w-auto">
 
     </a>
@@ -13,11 +13,20 @@
       @if (authService.isAuthenticated()) {
         <div class="hidden items-center space-x-6 md:flex">
           @if (userRole === 'admin') {
+            <a routerLink="/admin/database" class="text-sm font-medium transition hover:text-indigo-300">Base de Datos</a>
             <a routerLink="/select-faena" class="text-sm font-medium transition hover:text-indigo-300">Seleccionar Faena</a>
             <a routerLink="/admin/ingresar-faena" class="text-sm font-medium transition hover:text-indigo-300">Ingresar Faena</a>
             <a routerLink="/admin/ingresar-empresa" class="text-sm font-medium transition hover:text-indigo-300">Ingresar Empresa</a>
             <a routerLink="/admin/ingresar-trabajador" class="text-sm font-medium transition hover:text-indigo-300">Ingresar Trabajador</a>
+
+          }
+          @if (userRole === 'superAdmin') {
+            <a routerLink="/admin/panel" class="text-sm font-medium transition hover:text-indigo-300">Administración</a>
             <a routerLink="/admin/database" class="text-sm font-medium transition hover:text-indigo-300">Base de Datos</a>
+            <a routerLink="/select-faena" class="text-sm font-medium transition hover:text-indigo-300">Seleccionar Faena</a>
+            <a routerLink="/admin/ingresar-faena" class="text-sm font-medium transition hover:text-indigo-300">Ingresar Faena</a>
+            <a routerLink="/admin/ingresar-empresa" class="text-sm font-medium transition hover:text-indigo-300">Ingresar Empresa</a>
+            <a routerLink="/admin/ingresar-trabajador" class="text-sm font-medium transition hover:text-indigo-300">Ingresar Trabajador</a>
           }
           @if (userRole === 'empresa') {
             <a routerLink="/select-faena" class="text-sm font-medium transition hover:text-indigo-300">Seleccionar Faena</a>

@@ -11,6 +11,8 @@ import { IngresarTrabajadorComponent } from './ingresar-trabajador/ingresar-trab
 import { EmpresaDashboardComponent } from './empresa-dashboard/empresa-dashboard';
 import { IngresarEmpleadoComponent } from './ingresar-empleado/ingresar-empleado';
 import { DatabaseDashboardComponent } from './database-dashboard/database-dashboard';
+import { AdminPanelComponent } from './admin-panel/admin-panel';
+import { superAdminGuard } from './super-admin-guard';
 
 import { empresaGuard } from './empresa-guard';
 import { authGuard } from './auth-guard';
@@ -35,6 +37,9 @@ export const routes: Routes = [
   { path: 'admin/ingresar-empresa', component: IngresarEmpresaComponent, canActivate: [adminGuard] },
   { path: 'admin/ingresar-trabajador', component: IngresarTrabajadorComponent, canActivate: [adminGuard] },
   { path: 'admin/database', component: DatabaseDashboardComponent, canActivate: [adminGuard] },
+
+  // Rutas protegidas por superAdminGuard
+  { path: 'admin/panel', component: AdminPanelComponent, canActivate: [superAdminGuard] },
 
   // Rutas de fallback
   { path: '', redirectTo: 'login', pathMatch: 'full' },
