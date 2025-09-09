@@ -2,7 +2,7 @@ import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, FormControl, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Observable } from 'rxjs';
-import { Faena, FaenaService } from '../services/faena';
+import { Faena, FaenaService, Cargo } from '../services/faena'; // Se importa Cargo
 import { TrabajadorService } from '../services/trabajador';
 import { VolverAtras } from '../volver-atras/volver-atras';
 
@@ -19,7 +19,10 @@ export class IngresarTrabajadorComponent implements OnInit {
   deleteForm: FormGroup;
 
   // Datos para selectores
-  faenas$!: Observable<Faena[]>;
+  faenas: Faena[] = []; // Se usará un array en lugar de un Observable
+  cargosDisponibles: Cargo[] = []; // Nueva propiedad para los cargos dinámicos
+  selectedFaenaData: Faena | null = null; // Almacenará todos los datos de la faena seleccionada
+  vacantesDisponibles: number | null = null; // Para mostrar al usuario
   selectedFile: File | null = null;
   centros: string[] = ['CENTRO DE SALUD WORKMED SANTIAGO',
     'CENTRO DE SALUD WORKMED SANTIAGO PISO 6',
@@ -47,7 +50,7 @@ export class IngresarTrabajadorComponent implements OnInit {
     'CENTRO DE SALUD WORKMED - BIONET LOS ANDES',
   ];
 
-    // Mensajes de feedback
+  // Mensajes de feedback
   manualMsg = '';
   bulkMsg = '';
   deleteMsg = '';
@@ -60,7 +63,7 @@ export class IngresarTrabajadorComponent implements OnInit {
     private fb: FormBuilder,
     private faenaService: FaenaService,
     private trabajadorService: TrabajadorService,
-    private cd: ChangeDetectorRef // 2. Inyectar ChangeDetectorRef
+    private cd: ChangeDetectorRef
   ) {
     // Formulario para ingreso manual
     this.manualForm = this.fb.group({
@@ -70,15 +73,14 @@ export class IngresarTrabajadorComponent implements OnInit {
       edad: ['', Validators.required],
       email: ['', [Validators.required, Validators.email]],
       telefono: ['', Validators.required],
-      cargo: ['', Validators.required],
       faenaId: ['', Validators.required],
+      cargo: [{ value: '', disabled: true }, Validators.required], // ✅ El campo cargo empieza deshabilitado
       tipo_evaluacion: ['', Validators.required],
       sede_evaluacion: ['', Validators.required],
       fecha_atencion: ['', Validators.required],
       fecha_informe: ['', Validators.required],
       fecha_nacimiento: ['', Validators.required],
       direccion: ['', Validators.required],
-      // ... puedes añadir todos los demás campos aquí
     });
 
     // Formulario para importación masiva
@@ -94,7 +96,53 @@ export class IngresarTrabajadorComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.faenas$ = this.faenaService.getFaenas();
+    // ✅ Se suscribe al Observable para obtener los datos y guardarlos en el array local
+    this.faenaService.getFaenas().subscribe(data => {
+      this.faenas = data;
+    });
+  }
+
+  // ✅ NUEVO: Lógica para actualizar los cargos cuando cambia la faena
+  onFaenaChange(): void {
+    const faenaId = this.manualForm.get('faenaId')?.value;
+    const cargoControl = this.manualForm.get('cargo');
+
+    // Resetea todo al cambiar de faena
+    cargoControl?.reset({ value: '', disabled: true });
+    this.cargosDisponibles = [];
+    this.selectedFaenaData = null;
+    this.vacantesDisponibles = null;
+
+    if (faenaId) {
+      // Hacemos una llamada para obtener los datos frescos de la faena, incluyendo sus trabajadores
+      this.faenaService.getFaenaById(Number(faenaId)).subscribe(faenaData => {
+        this.selectedFaenaData = faenaData;
+        if (faenaData && faenaData.cargos) {
+          this.cargosDisponibles = faenaData.cargos;
+          cargoControl?.enable();
+        }
+      });
+    }
+  }
+
+  onCargoChange(): void {
+    const cargoId = this.manualForm.get('cargo')?.value; // Ahora esto será un ID
+    this.vacantesDisponibles = null;
+
+    if (cargoId && this.selectedFaenaData) {
+      const cargoSeleccionado = this.cargosDisponibles.find(c => c.id === Number(cargoId));
+      if (!cargoSeleccionado) return;
+
+      const totalVacantes = cargoSeleccionado.vacantes;
+
+      // ¡Importante! La lógica ahora debe contar trabajadores por el NOMBRE del cargo
+      // para calcular las vacantes restantes de esa tanda específica.
+      const trabajadoresEnCargo = this.selectedFaenaData.trabajadores.filter(
+        t => t.cargo === cargoSeleccionado.nombre // Comparamos por nombre para el cálculo local
+      ).length;
+
+      this.vacantesDisponibles = totalVacantes - trabajadoresEnCargo;
+    }
   }
 
   onFileSelected(event: Event): void {
@@ -114,21 +162,39 @@ export class IngresarTrabajadorComponent implements OnInit {
   // --- Lógica de Submisión ---
 
   submitManual(): void {
-    if (this.manualForm.invalid) return;
     this.manualMsg = '';
-    this.trabajadorService.createTrabajador(this.manualForm.value).subscribe({
+    if (this.manualForm.invalid) {
+      this.manualMsg = 'Por favor, complete todos los campos requeridos.';
+      return;
+    }
+
+    // VALIDACIÓN CLAVE: Se comprueba si quedan vacantes disponibles
+    if (this.vacantesDisponibles !== null && this.vacantesDisponibles <= 0) {
+      this.manualMsg = 'No quedan vacantes disponibles para el cargo seleccionado en esta faena.';
+      return;
+    }
+
+    const formValue = this.manualForm.getRawValue();
+    const payload = {
+      ...formValue,
+      // Renombramos la propiedad 'cargo' (que tiene el ID) a 'cargoId' para que coincida con el nuevo DTO del backend.
+      faenaId: Number(formValue.faenaId),
+      cargoId: formValue.cargo,
+    };
+    delete payload.cargo; // Eliminamos la propiedad original
+    this.trabajadorService.createTrabajador(payload).subscribe({
       next: () => {
         this.manualMsg = 'Trabajador creado exitosamente.';
-        this.manualForm.reset();
+        const currentFaenaId = this.manualForm.get('faenaId')?.value;
+        this.onFaenaChange(); // Recargamos los datos para recalcular vacantes
+        this.manualForm.reset({ faenaId: currentFaenaId, cargo: { value: '', disabled: true } });
       },
-      error: (err) => (this.manualMsg = 'Error al crear trabajador.'),
+      error: (err) => (this.manualMsg = err.error?.message[0] || err.error.message || 'Error al crear trabajador.'),
     });
   }
 
   submitBulk(): void {
     if (this.bulkForm.invalid || !this.selectedFile) return;
-
-    // Limpiar mensajes anteriores al reenviar
     this.bulkMsg = '';
     this.bulkErrors = [];
 
@@ -137,7 +203,6 @@ export class IngresarTrabajadorComponent implements OnInit {
     formData.append('faenaId', this.bulkForm.get('faenaId')?.value);
 
     this.trabajadorService.createTrabajadoresBulk(formData).subscribe({
-
       next: (res) => {
         this.bulkMsg = `${res.createdCount} trabajadores importados exitosamente.`;
         this.cd.detectChanges();

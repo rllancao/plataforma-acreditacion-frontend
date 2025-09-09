@@ -16,8 +16,12 @@ import { VolverAtras } from '../volver-atras/volver-atras';
 })
 export class IngresarFaenaComponent implements OnInit {
   faenaForm: FormGroup;
+  nuevoRequisitoForm: FormGroup;
   seccionesRequisitos: SeccionRequisito[] = [];
   empresas$!: Observable<Empresa[]>;
+
+  requisitoSuccessMsg = '';
+  requisitoErrorMsg = '';
 
   private requisitoIdMap: number[] = [];
 
@@ -34,7 +38,14 @@ export class IngresarFaenaComponent implements OnInit {
       ciudad: ['', Validators.required],
       usuarioId: ['', Validators.required],
       requisitos: this.fb.array([]),
+      cargos: this.fb.array([]),
     });
+
+    this.nuevoRequisitoForm = this.fb.group({
+      seccionId: ['', Validators.required],
+      nombre: ['', Validators.required],
+    });
+
   }
 
   ngOnInit(): void {
@@ -45,10 +56,30 @@ export class IngresarFaenaComponent implements OnInit {
       this.buildRequisitosCheckboxes();
       this.cd.detectChanges();
     });
+    this.addCargo();
   }
 
   get requisitosFormArray() {
     return this.faenaForm.get('requisitos') as FormArray;
+  }
+  get cargosFormArray() {
+    return this.faenaForm.get('cargos') as FormArray;
+  }
+
+  // ✅ 3. Lógica para gestionar los cargos dinámicamente ---
+  createCargoGroup(): FormGroup {
+    return this.fb.group({
+      nombre: ['', Validators.required],
+      vacantes: [1, [Validators.required, Validators.min(1)]],
+    });
+  }
+
+  addCargo(): void {
+    this.cargosFormArray.push(this.createCargoGroup());
+  }
+
+  removeCargo(index: number): void {
+    this.cargosFormArray.removeAt(index);
   }
 
   buildRequisitosCheckboxes() {
@@ -100,6 +131,50 @@ export class IngresarFaenaComponent implements OnInit {
       alert('¡Faena creada exitosamente!');
       this.router.navigate(['/admin']);
     });
+  }
+
+  loadRequisitos(): void {
+    this.requisitosService.getRequisitos().subscribe(data => {
+      this.seccionesRequisitos = data;
+      this.buildRequisitosCheckboxes();
+      this.cd.detectChanges();
+    });
+  }
+
+  onNuevoRequisitoSubmit(): void {
+    if (this.nuevoRequisitoForm.invalid) return;
+    this.clearRequisitoMessages();
+
+    const formValue = this.nuevoRequisitoForm.value;
+    const payload = {
+      nombre: formValue.nombre,
+      seccionId: Number(formValue.seccionId)
+    };
+
+    this.requisitosService.createRequisito(payload).subscribe({
+      next: () => {
+        this.requisitoSuccessMsg = `El requisito "${payload.nombre}" ha sido añadido exitosamente.`;
+        this.nuevoRequisitoForm.reset({ seccionId: '', nombre: '' });
+        this.loadRequisitos();
+
+        // ✅ CORRECCIÓN: Se fuerza la detección de cambios para mostrar el mensaje
+        this.cd.detectChanges();
+
+        setTimeout(() => {
+          this.clearRequisitoMessages();
+          this.cd.detectChanges(); // También es bueno limpiar el mensaje en la zona de Angular
+        }, 5000);
+      },
+      error: (err) => {
+        this.requisitoErrorMsg = 'Error al añadir el requisito.';
+        console.error(err);
+        this.cd.detectChanges();
+      }
+    });
+  }
+  clearRequisitoMessages(): void {
+    this.requisitoSuccessMsg = '';
+    this.requisitoErrorMsg = '';
   }
 
   getFormControlIndex(seccionIndex: number, docIndex: number): number {

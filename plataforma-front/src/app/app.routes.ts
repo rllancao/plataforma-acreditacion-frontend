@@ -8,9 +8,16 @@ import { AdminDashboardComponent } from './admin-dashboard/admin-dashboard';
 import { IngresarFaenaComponent } from './ingresar-faena/ingresar-faena';
 import { IngresarEmpresaComponent } from './ingresar-empresa/ingresar-empresa';
 import { IngresarTrabajadorComponent } from './ingresar-trabajador/ingresar-trabajador';
+import { EmpresaDashboardComponent } from './empresa-dashboard/empresa-dashboard';
+import { IngresarEmpleadoComponent } from './ingresar-empleado/ingresar-empleado';
+import { DatabaseDashboardComponent } from './database-dashboard/database-dashboard';
+import { AdminPanelComponent } from './admin-panel/admin-panel';
+import { superAdminGuard } from './super-admin-guard';
 
+import { empresaGuard } from './empresa-guard';
 import { authGuard } from './auth-guard';
 import { adminGuard } from './admin.guard';
+import {ModificarFaenaComponent} from './modificar-faena/modificar-faena';
 
 export const routes: Routes = [
   // Rutas públicas
@@ -22,11 +29,19 @@ export const routes: Routes = [
   { path: 'dashboard/:id', component: DashboardComponent, canActivate: [authGuard] },
   { path: 'trabajador/:id', component: DetalleTrabajadorComponent, canActivate: [authGuard] },
 
+  { path: 'empresa-dashboard', component: EmpresaDashboardComponent, canActivate: [authGuard, empresaGuard] },
+  { path: 'empresa/ingresar-empleado', component: IngresarEmpleadoComponent, canActivate: [authGuard, empresaGuard] },
+
   // Rutas protegidas por adminGuard
   { path: 'admin', component: AdminDashboardComponent, canActivate: [adminGuard] },
   { path: 'admin/ingresar-faena', component: IngresarFaenaComponent, canActivate: [adminGuard] },
+  { path: 'admin/modificar-faena/:id', component: ModificarFaenaComponent, canActivate: [adminGuard] },
   { path: 'admin/ingresar-empresa', component: IngresarEmpresaComponent, canActivate: [adminGuard] },
   { path: 'admin/ingresar-trabajador', component: IngresarTrabajadorComponent, canActivate: [adminGuard] },
+  { path: 'admin/database', component: DatabaseDashboardComponent, canActivate: [adminGuard] },
+
+  // Rutas protegidas por superAdminGuard
+  { path: 'admin/panel', component: AdminPanelComponent, canActivate: [superAdminGuard] },
 
   // Rutas de fallback
   { path: '', redirectTo: 'login', pathMatch: 'full' },

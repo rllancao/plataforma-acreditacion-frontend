@@ -6,23 +6,29 @@ import {
 } from '@angular/ssr/node';
 import express from 'express';
 import { join } from 'node:path';
+import { createProxyMiddleware } from 'http-proxy-middleware';
 
 const browserDistFolder = join(import.meta.dirname, '../browser');
-
 const app = express();
 const angularApp = new AngularNodeAppEngine();
 
-/**
- * Example Express Rest API endpoints can be defined here.
- * Uncomment and define endpoints as necessary.
- *
- * Example:
- * ```ts
- * app.get('/api/{*splat}', (req, res) => {
- *   // Handle API request
- * });
- * ```
- */
+const apiUrl = process.env['API_URL'];
+
+if (apiUrl) {
+  app.use('/api', createProxyMiddleware({
+    target: apiUrl,
+    changeOrigin: true,
+    pathRewrite: {
+      '^/api': '',
+    },
+    // ✅ CORRECCIÓN: Los eventos ahora van dentro de un objeto 'on'
+    on: {
+      proxyReq: (proxyReq, req, res) => {
+        console.log(`[Proxy] Redirigiendo ${req.method} a ${proxyReq.protocol}//${proxyReq.host}${proxyReq.path}`);
+      }
+    }
+  }));
+}
 
 /**
  * Serve static files from /browser
@@ -48,21 +54,16 @@ app.use((req, res, next) => {
 });
 
 /**
- * Start the server if this module is the main entry point.
- * The server listens on the port defined by the `PORT` environment variable, or defaults to 4000.
+ * Start the server.
  */
 if (isMainModule(import.meta.url)) {
-  const port = process.env['PORT'] || 8000;
-  app.listen(port, (error) => {
-    if (error) {
-      throw error;
-    }
-
+  const port = process.env['PORT'] || 10000;
+  app.listen(port, () => {
     console.log(`Node Express server listening on http://localhost:${port}`);
   });
 }
 
 /**
- * Request handler used by the Angular CLI (for dev-server and during build) or Firebase Cloud Functions.
+ * Request handler.
  */
 export const reqHandler = createNodeRequestHandler(app);

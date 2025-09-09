@@ -1,0 +1,76 @@
+<div class="min-h-screen bg-gray-100 p-8">
+  <header class="mb-8 flex items-center">
+    <app-volver-atras></app-volver-atras>
+    <h1 class="ml-4 text-3xl font-bold text-gray-800">Panel de Administración</h1>
+  </header>
+
+  <!-- Mensajes de Feedback -->
+  <div *ngIf="feedbackMsg || errorMsg" class="mx-auto max-w-4xl mb-6">
+    <p *ngIf="feedbackMsg" class="rounded-md bg-green-50 p-3 text-sm text-green-700">{{ feedbackMsg }}</p>
+    <p *ngIf="errorMsg" class="rounded-md bg-red-50 p-3 text-sm text-red-700">{{ errorMsg }}</p>
+  </div>
+
+  <div class="grid grid-cols-1 gap-8 lg:grid-cols-2">
+    <!-- Card: Crear Usuario -->
+    <div class="rounded-lg bg-white p-6 shadow-md">
+      <h2 class="text-xl font-semibold">Crear Usuario</h2>
+      <form [formGroup]="createUserForm" (ngSubmit)="onCreateUserSubmit()" class="mt-4 space-y-4">
+        <div>
+          <label class="block text-sm font-medium">Nombre</label>
+          <input formControlName="nombre" type="text" class="mt-1 w-full rounded-lg border border-gray-300 p-2 shadow-sm">
+        </div>
+        <div>
+          <label class="block text-sm font-medium">Email</label>
+          <input formControlName="email" type="email" class="mt-1 w-full rounded-lg border border-gray-300 p-2 shadow-sm">
+        </div>
+        <div>
+          <label class="block text-sm font-medium">Contraseña</label>
+          <input formControlName="password" type="password" class="mt-1 w-full rounded-lg border border-gray-300 p-2 shadow-sm">
+        </div>
+        <div>
+          <label class="block text-sm font-medium">Rol</label>
+          <select formControlName="role" class="mt-1 w-full rounded-lg border border-gray-300 p-2 shadow-sm">
+            <option value="empresa">Empresa</option>
+            <option value="admin">Admin</option>
+          </select>
+        </div>
+        <div class="flex justify-end">
+          <button type="submit" [disabled]="createUserForm.invalid" class="rounded-lg bg-indigo-600 px-6 py-2 font-medium text-white hover:bg-indigo-700 disabled:opacity-50">
+            Crear
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Contenedor para las listas de eliminación -->
+    <div class="space-y-8">
+      <!-- Card: Eliminar Empresa -->
+      <div class="rounded-lg bg-white p-6 shadow-md">
+        <h2 class="text-xl font-semibold">Eliminar Empresa</h2>
+        <ul class="mt-4 max-h-60 space-y-2 overflow-y-auto">
+          <!-- ✅ CORRECCIÓN: Se elimina el pipe 'async' -->
+          <li *ngFor="let empresa of empresas" class="flex items-center justify-between rounded-md p-2 hover:bg-gray-50">
+            <span class="text-sm text-gray-800">{{ empresa.nombre }}</span>
+            <button (click)="onDeleteEmpresa(empresa.id, empresa.nombre)" class="text-sm font-medium text-red-600 hover:text-red-800">
+              Eliminar
+            </button>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Card: Eliminar Faena -->
+      <div class="rounded-lg bg-white p-6 shadow-md">
+        <h2 class="text-xl font-semibold">Eliminar Faena</h2>
+        <ul class="mt-4 max-h-60 space-y-2 overflow-y-auto">
+          <!-- ✅ CORRECCIÓN: Se elimina el pipe 'async' -->
+          <li *ngFor="let faena of faenas" class="flex items-center justify-between rounded-md p-2 hover:bg-gray-50">
+            <span class="text-sm text-gray-800">{{ faena.nombre }}</span>
+            <button (click)="onDeleteFaena(faena.id, faena.nombre)" class="text-sm font-medium text-red-600 hover:text-red-800">
+              Eliminar
+            </button>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>

@@ -3,12 +3,13 @@ import { isPlatformBrowser } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
 import { jwtDecode } from 'jwt-decode';
+import { environment } from '../../environments/environment';
 
 // Interfaz para el payload decodificado del token
 interface DecodedToken {
   userId: number;
   email: string;
-  role: 'admin' | 'empresa';
+  role: 'admin' | 'empresa' | 'empleado' | 'superAdmin' | null;
   iat: number;
   exp: number;
 }
@@ -17,7 +18,7 @@ interface DecodedToken {
   providedIn: 'root'
 })
 export class AuthService {
-  private readonly apiUrl = 'http://localhost:8000';
+  private readonly apiUrl = environment.apiUrl;
   private platformId = inject(PLATFORM_ID); // Inyectar PLATFORM_ID para detectar el entorno
 
   constructor(private http: HttpClient) { }
@@ -34,7 +35,7 @@ export class AuthService {
     );
   }
 
-  getUserRole(): 'admin' | 'empresa' | null {
+  getUserRole(): 'admin' | 'empresa' | 'empleado' | 'superAdmin' | null {
     // Solo acceder a localStorage si estamos en el navegador
     if (isPlatformBrowser(this.platformId)) {
       const token = localStorage.getItem('access_token');

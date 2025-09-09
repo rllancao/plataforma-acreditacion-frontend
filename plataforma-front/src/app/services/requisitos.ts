@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 export interface DocumentoRequisito {
   id: number;
@@ -15,10 +16,15 @@ export interface SeccionRequisito {
 
 @Injectable({ providedIn: 'root' })
 export class RequisitosService {
-  private readonly apiUrl = 'http://localhost:8000/requisitos';
+  private readonly apiUrl = `${environment.apiUrl}/requisitos`;
   constructor(private http: HttpClient) {}
 
   getRequisitos(): Observable<SeccionRequisito[]> {
     return this.http.get<SeccionRequisito[]>(this.apiUrl);
   }
+
+  createRequisito(payload: { seccionId: number; nombre: string }): Observable<DocumentoRequisito> {
+    return this.http.post<DocumentoRequisito>(this.apiUrl, payload);
+  }
+
 }

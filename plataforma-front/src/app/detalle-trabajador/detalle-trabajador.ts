@@ -6,9 +6,9 @@ import { Chart, registerables } from 'chart.js';
 import { forkJoin, Subscription, of } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
 import { saveAs } from 'file-saver';
+import { FormBuilder} from '@angular/forms';
 
 import { Trabajador, TrabajadorService, DocumentoRequisito } from '../services/trabajador';
-// ✅ CORRECCIÓN: Se usa el nombre de archivo y tipo correctos
 import { Documentos, DocumentoService } from '../services/documentos';
 import { AuthService } from '../services/auth';
 import { VolverAtras } from '../volver-atras/volver-atras';
@@ -31,13 +31,14 @@ export interface DocumentoChecklistItem {
 })
 export class DetalleTrabajadorComponent implements OnInit, OnDestroy {
   trabajador: Trabajador | null = null;
-  // ✅ CORRECCIÓN: Se usa el tipo 'Documentos' (plural)
   documentos: Documentos[] = [];
   documentosPorSeccion: { [seccion: string]: Documentos[] } = {};
-  userRole: 'admin' | 'empresa' | null = null;
-  backLink: any[] | null = null; //
+  userRole: 'admin' | 'empresa' | 'empleado' | 'superAdmin' | null = null;
+  backLink: any[] | null = null;
 
   uploadForm: FormGroup;
+  fechaInformeForm: FormGroup;
+  isEditingFechaInforme = false;
   selectedFile: File | null = null;
   requisitosPorSeccion: { [key: string]: DocumentoRequisito[] } = {};
   nombresDocumentosDisponibles: DocumentoRequisito[] = [];
@@ -57,24 +58,35 @@ export class DetalleTrabajadorComponent implements OnInit, OnDestroy {
     private trabajadorService: TrabajadorService,
     private documentoService: DocumentoService,
     private authService: AuthService,
-    private cd: ChangeDetectorRef
+    private cd: ChangeDetectorRef,
+    private fb: FormBuilder
   ) {
     this.uploadForm = new FormGroup({
       seccion: new FormControl('', [Validators.required]),
       nombre: new FormControl({ value: '', disabled: true }, [Validators.required]),
       file: new FormControl(null, [Validators.required]),
     });
+
+    this.fechaInformeForm = this.fb.group({
+      fecha_informe: ['', Validators.required]
+    });
+    console.log('[DEBUG] Constructor: backLink inicial es', this.backLink);
+
   }
 
   ngOnInit(): void {
     this.userRole = this.authService.getUserRole();
+    console.log('[DEBUG] ngOnInit: Iniciando carga de datos...');
     this.loadData();
+
   }
+
 
   loadData(): void {
     this.routeSub = this.route.paramMap.pipe(
       switchMap(params => {
         const id = Number(params.get('id'));
+        console.log(`[DEBUG] Obtenido ID de la URL: ${id}`);
         if (!id) return forkJoin({ trabajador: of(null), documentos: of([]) });
 
         return forkJoin({
@@ -83,19 +95,86 @@ export class DetalleTrabajadorComponent implements OnInit, OnDestroy {
         });
       })
     ).subscribe(result => {
+      console.log('[DEBUG] Datos recibidos de la API:', result);
       if (result.trabajador) {
         this.trabajador = result.trabajador;
         this.documentos = result.documentos;
 
-        // ✅ Construir el enlace de vuelta al dashboard de la faena
         if (this.trabajador.faenaRelacion?.id) {
+          console.log(`[DEBUG] Faena ID encontrada: ${this.trabajador.faenaRelacion.id}. Construyendo backLink...`);
           this.backLink = ['/dashboard', this.trabajador.faenaRelacion.id];
+          console.log('[DEBUG] backLink asignado a:', this.backLink);
+        } else {
+          console.error('[DEBUG] ¡ERROR! No se encontró faenaRelacion.id en el objeto trabajador. El backLink no se pudo construir.');
+          // Como fallback, podrías asignar una ruta por defecto aquí si es necesario
+          // this.backLink = ['/select-faena'];
         }
+        console.log('[DEBUG] backLink asignado de nuevo a:', this.backLink);
 
         this.buildChecklist();
         this.buildRequisitosMap();
+        console.log('[DEBUG] Forzando detección de cambios...');
         this.cd.detectChanges();
+        console.log('[DEBUG] Despues de forzar: backLink asignado a:', this.backLink);
+        console.log('[DEBUG] Detección de cambios completada.');
         this.createDocsChart();
+        console.log('[DEBUG] Despues de grafico: backLink asignado a:', this.backLink);
+      }
+    });
+  }
+
+
+  toggleEditFechaInforme(isEditing: boolean): void {
+    this.isEditingFechaInforme = isEditing;
+    if (!isEditing && this.trabajador) {
+      // Si se cancela, se resetea el formulario al valor original
+      this.fechaInformeForm.patchValue({
+        fecha_informe: formatDate(this.trabajador.fecha_informe, 'yyyy-MM-dd', 'en-US')
+      });
+    }
+  }
+
+
+  onUpdateFechaInforme(): void {
+    if (!this.trabajador || this.fechaInformeForm.invalid) {
+      return;
+    }
+    const nuevaFecha = this.fechaInformeForm.value.fecha_informe;
+    this.trabajadorService.updateFechaInforme(this.trabajador.id, nuevaFecha).subscribe({
+      next: (trabajadorActualizado) => {
+        this.trabajador!.fecha_informe = trabajadorActualizado.fecha_informe;
+        this.toggleEditFechaInforme(false); // Salir del modo de edición
+        alert('Fecha actualizada exitosamente.');
+        this.cd.detectChanges();
+      },
+      error: (err) => {
+        console.error('Error al actualizar la fecha:', err);
+        alert('No se pudo actualizar la fecha.');
+      }
+    });
+  }
+
+  marcarComoNoAplica(item: DocumentoChecklistItem): void {
+    if (!this.trabajador) return;
+
+    const payload = {
+      trabajadorId: this.trabajador.id,
+      nombre: item.requisito.nombre,
+      seccion: item.requisito.seccion.nombre,
+    };
+
+    this.documentoService.marcarComoNoAplica(payload).subscribe({
+      next: (newlyCreatedDocument) => {
+        this.successMsg = `"${item.requisito.nombre}" marcado como 'No aplica'.`;
+        this.documentos.push(newlyCreatedDocument);
+        this.buildChecklist();
+        this.createDocsChart();
+        this.cd.detectChanges();
+      },
+      error: (err) => {
+        this.errorMsg = 'Error al marcar como "No aplica".';
+        console.error(err);
+        this.cd.detectChanges();
       }
     });
   }
@@ -145,14 +224,6 @@ export class DetalleTrabajadorComponent implements OnInit, OnDestroy {
       nombreControl?.disable();
     }
     nombreControl?.reset('');
-  }
-
-  groupDocumentsBySection(): void {
-    // ✅ CORRECCIÓN: Se usa el tipo 'Documentos'
-    this.documentosPorSeccion = this.documentos.reduce((acc, doc) => {
-      (acc[doc.seccion] = acc[doc.seccion] || []).push(doc);
-      return acc;
-    }, {} as { [seccion: string]: Documentos[] });
   }
 
   createDocsChart(): void {
@@ -243,11 +314,17 @@ export class DetalleTrabajadorComponent implements OnInit, OnDestroy {
     formData.append('trabajadorId', this.trabajador.id.toString());
 
     this.documentoService.uploadDocument(formData).subscribe({
-      next: () => {
+      // ✅ CORRECCIÓN: Se recibe el nuevo documento desde el backend
+      next: (newlyCreatedDocument: Documentos) => {
         this.successMsg = '¡Documento subido exitosamente!';
         this.uploadForm.reset({ seccion: '', nombre: { value: '', disabled: true } });
         this.selectedFile = null;
-        this.loadData();
+
+        // Se actualiza el estado del componente directamente, sin volver a llamar a la API
+        this.documentos.push(newlyCreatedDocument);
+        this.buildChecklist();
+        this.createDocsChart();
+        this.cd.detectChanges(); // Se asegura de que la vista se actualice
       },
       error: (err) => {
         this.errorMsg = 'Error al subir el documento.';
@@ -257,10 +334,19 @@ export class DetalleTrabajadorComponent implements OnInit, OnDestroy {
   }
 
   viewDocument(docId: number): void {
-    this.documentoService.viewDocument(docId).subscribe(blob => {
-      const fileURL = URL.createObjectURL(blob);
-      window.open(fileURL, '_blank');
-    });
+    const url = this.documentoService.getViewDocumentUrl(docId);
+
+    // Obtenemos el token para añadirlo a la URL, ya que window.open
+    // no usa el interceptor de Angular.
+    const token = localStorage.getItem('access_token');
+
+    if (token) {
+      // El backend está configurado para leer el token desde este parámetro.
+      window.open(`${url}?token=${token}`, '_blank');
+    } else {
+      console.error('No se encontró el token de autenticación.');
+      // Opcional: redirigir al login o mostrar un error.
+    }
   }
 
   deleteDocument(docId: number): void {

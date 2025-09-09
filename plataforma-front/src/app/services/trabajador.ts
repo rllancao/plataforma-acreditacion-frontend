@@ -2,7 +2,8 @@ import { Injectable, inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
-import { Documentos } from './documentos'; // Asegúrate de que la ruta sea correcta
+import { Documentos } from './documentos';
+import { environment} from '../../environments/environment';
 
 // --- Interfaces ---
 interface Usuario {
@@ -39,18 +40,25 @@ export interface Trabajador {
   fecha_nacimiento: string;
   genero: string;
   edad: number;
-  cargo: string;
+  cargo: Cargo;
   faenaRelacion: FaenaRelacion;
   status: string;
   documentosVencidos?: Documentos[];
   documentosPorVencer?: Documentos[];
 }
 
+export interface Cargo {
+  id: number;
+  nombre: string;
+  vacantes: number;
+  tanda: number;
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class TrabajadorService {
-  private readonly apiUrl = 'http://localhost:8000/trabajadores';
+  private readonly apiUrl = `${environment.apiUrl}/trabajadores`;
   private platformId = inject(PLATFORM_ID); // Inyectar PLATFORM_ID
 
   constructor(private http: HttpClient) { }
@@ -64,8 +72,17 @@ export class TrabajadorService {
     return of(null);
   }
 
+  updateFechaInforme(trabajadorId: number, fecha_informe: string): Observable<Trabajador> {
+    const payload = { fecha_informe };
+    return this.http.patch<Trabajador>(`${this.apiUrl}/${trabajadorId}/fecha-informe`, payload);
+  }
+
   createTrabajador(payload: any): Observable<any> {
     return this.http.post(this.apiUrl, payload);
+  }
+
+  getAllTrabajadores(): Observable<Trabajador[]> {
+    return this.http.get<Trabajador[]>(`${this.apiUrl}/all`);
   }
 
   createTrabajadoresBulk(formData: FormData): Observable<any> {

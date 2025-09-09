@@ -51,14 +51,18 @@ export class Login {
 
     this.authService.login(this.form.value).subscribe({
       next: () => {
-        // ✅ LÓGICA DE REDIRECCIÓN POR ROL
         const userRole = this.authService.getUserRole();
 
-        if (userRole === 'admin') {
-          // Si es admin, redirige al panel de administración
+        // Log para depurar el rol obtenido
+        console.log('Rol de usuario detectado:', userRole);
+
+        // ✅ CORRECCIÓN: Se agrupan los roles de administrador en una sola condición
+        if (userRole === 'admin' || userRole === 'superAdmin') {
           this.router.navigate(['/admin']);
+        } else if (userRole === 'empresa') {
+          this.router.navigate(['/empresa-dashboard']);
         } else {
-          // Si es empresa, redirige al selector de faenas
+          // Para cualquier otro rol (como 'empleado')
           this.router.navigate(['/select-faena']);
         }
       },
