@@ -178,6 +178,7 @@ export class IngresarTrabajadorComponent implements OnInit {
     const payload = {
       ...formValue,
       // Renombramos la propiedad 'cargo' (que tiene el ID) a 'cargoId' para que coincida con el nuevo DTO del backend.
+      faenaId: Number(formValue.faenaId),
       cargoId: formValue.cargo,
     };
     delete payload.cargo; // Eliminamos la propiedad original
