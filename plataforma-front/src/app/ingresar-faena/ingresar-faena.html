@@ -57,6 +57,33 @@
       </div>
     </div>
 
+    <div class="rounded-lg bg-white p-6 shadow-md">
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="text-xl font-semibold">Cargos y Vacantes</h2>
+          <p class="text-sm text-gray-500">Especifica los cargos disponibles para esta faena.</p>
+        </div>
+        <button type="button" (click)="addCargo()" class="rounded-lg bg-green-500 px-4 py-2 font-medium text-white hover:bg-green-600">
+          Añadir Cargo
+        </button>
+      </div>
+      <div formArrayName="cargos" class="mt-4 space-y-4">
+        <div *ngFor="let cargoGroup of cargosFormArray.controls; let i = index" [formGroupName]="i" class="grid grid-cols-1 items-end gap-4 sm:grid-cols-3">
+          <div class="sm:col-span-1">
+            <label class="block text-sm font-medium">Nombre del Cargo</label>
+            <input formControlName="nombre" type="text" class="mt-1 w-full rounded-lg border border-gray-300 p-2 shadow-sm">
+          </div>
+          <div class="sm:col-span-1">
+            <label class="block text-sm font-medium">N° de Vacantes</label>
+            <input formControlName="vacantes" type="number" min="1" class="mt-1 w-full rounded-lg border border-gray-300 p-2 shadow-sm">
+          </div>
+          <button type="button" (click)="removeCargo(i)" class="rounded-lg bg-red-500 px-4 py-2 font-medium text-white hover:bg-red-600 sm:w-auto">
+            Eliminar
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- Botón de Envío -->
     <div class="flex justify-end">
       <button type="submit" [disabled]="faenaForm.invalid" class="rounded-lg bg-indigo-600 px-8 py-3 font-medium text-white hover:bg-indigo-700 disabled:opacity-50">

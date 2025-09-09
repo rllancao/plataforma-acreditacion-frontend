@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { RouterModule } from '@angular/router';
-import { LucideAngularModule, Briefcase, PlusCircle, Building2, UserPlus, Database, Settings } from 'lucide-angular'; // Importar UserPlus
+import { LucideAngularModule, Briefcase, PlusCircle, Building2, UserPlus, Database, Settings, Wrench } from 'lucide-angular'; // Importar UserPlus
 import { AuthService } from '../services/auth'; // Asegúrate de que AuthService esté importado correctamente
 
 @Component({
@@ -57,6 +57,7 @@ export class AdminDashboardComponent {
   UserPlus = UserPlus; // Exponer el nuevo icono
   Database = Database; // Icono para la base de datos
   Settings = Settings; // Icono para administración
+  Wrench = Wrench; // Icono para modificar faena
   constructor(public authService: AuthService) {}
 
   get userRole(): 'admin' | 'empresa' | 'empleado' | 'superAdmin' | null {

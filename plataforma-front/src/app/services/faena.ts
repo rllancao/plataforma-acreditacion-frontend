@@ -3,12 +3,20 @@ import { isPlatformBrowser } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { environment } from '../../environments/environment';
+import { map } from 'rxjs/operators';
 
 // Interfaz para el objeto Usuario anidado dentro de Faena
 interface Usuario {
   id: number;
   nombre: string;
   email: string;
+}
+
+export interface Cargo{
+  id: number;
+  nombre: string;
+  vacantes: number;
+  tanda: number;
 }
 
 // Interfaz principal para Faena, ahora con la relación de usuario
@@ -18,6 +26,7 @@ export interface Faena {
   ciudad: string;
   trabajadores: any[];
   usuario: Usuario;
+  cargos: Cargo[];
 }
 
 // Interfaz para el payload de creación de Faena
@@ -64,8 +73,31 @@ export class FaenaService {
       nombre: 'Cargando...',
       ciudad: '',
       trabajadores: [],
-      usuario: { id: 0, nombre: '', email: '' }
+      usuario: { id: 0, nombre: '', email: '' },
+      cargos: [{ id: 0, nombre: '', vacantes: 0, tanda: 0 }],
     };
     return of(skeletonFaena);
+  }
+  getCargosPorFaenaId(id: number): Observable<Cargo[]> {
+    if (isPlatformBrowser(this.platformId)) {
+      // Reutilizamos getFaenaById y transformamos el resultado con `pipe` y `map`.
+      return this.getFaenaById(id).pipe(
+        map(faena => faena.cargos || []) // Extraemos solo el array de cargos
+      );
+    }
+    // En el servidor, devolver un arreglo vacío.
+    return of([]);
+  }
+
+  addCargo(faenaId: number, cargoData: { nombre: string; vacantes: number }): Observable<Cargo> {
+    return this.http.post<Cargo>(`${this.apiUrl}/${faenaId}/cargos`, cargoData);
+  }
+
+  updateCargo(faenaId: number, cargoId: number, cargoData: { nombre?: string; vacantes?: number }): Observable<Cargo> {
+    return this.http.patch<Cargo>(`${this.apiUrl}/${faenaId}/cargos/${cargoId}`, cargoData);
+  }
+
+  deleteCargo(faenaId: number, cargoId: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${faenaId}/cargos/${cargoId}`);
   }
 }

@@ -38,6 +38,7 @@ export class IngresarFaenaComponent implements OnInit {
       ciudad: ['', Validators.required],
       usuarioId: ['', Validators.required],
       requisitos: this.fb.array([]),
+      cargos: this.fb.array([]),
     });
 
     this.nuevoRequisitoForm = this.fb.group({
@@ -55,10 +56,30 @@ export class IngresarFaenaComponent implements OnInit {
       this.buildRequisitosCheckboxes();
       this.cd.detectChanges();
     });
+    this.addCargo();
   }
 
   get requisitosFormArray() {
     return this.faenaForm.get('requisitos') as FormArray;
+  }
+  get cargosFormArray() {
+    return this.faenaForm.get('cargos') as FormArray;
+  }
+
+  // ✅ 3. Lógica para gestionar los cargos dinámicamente ---
+  createCargoGroup(): FormGroup {
+    return this.fb.group({
+      nombre: ['', Validators.required],
+      vacantes: [1, [Validators.required, Validators.min(1)]],
+    });
+  }
+
+  addCargo(): void {
+    this.cargosFormArray.push(this.createCargoGroup());
+  }
+
+  removeCargo(index: number): void {
+    this.cargosFormArray.removeAt(index);
   }
 
   buildRequisitosCheckboxes() {

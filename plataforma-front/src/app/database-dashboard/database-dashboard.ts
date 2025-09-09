@@ -4,9 +4,10 @@ import { RouterModule } from '@angular/router';
 import { ReactiveFormsModule, FormGroup, FormControl } from '@angular/forms';
 import { Chart, registerables, ChartConfiguration } from 'chart.js';
 import { LucideAngularModule, ChevronDown, Search, XCircle, Eye, X } from 'lucide-angular';
-import { Trabajador, TrabajadorService } from '../services/trabajador';
+// ✅ Se importa la interfaz 'Cargo'
+import { Trabajador, TrabajadorService, Cargo } from '../services/trabajador';
 import { Subscription } from 'rxjs';
-import { debounceTime, distinctUntilChanged, startWith } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { VolverAtras } from '../volver-atras/volver-atras';
 
 @Component({
@@ -25,9 +26,12 @@ export class DatabaseDashboardComponent implements OnInit, OnDestroy {
 
   allWorkers: Trabajador[] = [];
   filteredWorkers: Trabajador[] = [];
-  cargosDisponibles: string[] = [];
+
+  // ✅ CORRECCIÓN: La propiedad ahora es de tipo 'Cargo[]'
+  cargosDisponibles: Cargo[] = [];
+
   empresas: string[] = [];
-  faenasDisponibles: string[] = []; // ✅ 1. Nueva propiedad para las faenas filtradas
+  faenasDisponibles: string[] = [];
 
   isModalOpen = false;
   workerForModal: any | null = null;
@@ -35,7 +39,6 @@ export class DatabaseDashboardComponent implements OnInit, OnDestroy {
   filterForm: FormGroup;
 
   private chartInstance?: Chart;
-  private filterSub?: Subscription;
   private subscriptions: Subscription = new Subscription();
   private platformId = inject(PLATFORM_ID);
 
@@ -61,9 +64,8 @@ export class DatabaseDashboardComponent implements OnInit, OnDestroy {
         this.allWorkers = workers;
         this.filteredWorkers = [...this.allWorkers];
 
-        // Inicializar listas de filtros con todos los datos
         this.empresas = [...new Set(this.allWorkers.map(w => w.faenaRelacion.usuario.nombre))].sort();
-        this.updateFaenaAndCargoLists(); // Llama a la nueva función
+        this.updateFaenaAndCargoLists();
 
         this.cd.detectChanges();
         this.updateChart();
@@ -94,7 +96,7 @@ export class DatabaseDashboardComponent implements OnInit, OnDestroy {
     this.subscriptions.add(allFiltersSub);
   }
 
-  // ✅ NUEVO: Método centralizado para actualizar las listas de faenas y cargos
+  // ✅ CORRECCIÓN: Método actualizado para manejar objetos 'Cargo'
   updateFaenaAndCargoLists(): void {
     const selectedEmpresa = this.filterForm.get('empresa')?.value;
     const selectedFaena = this.filterForm.get('faena')?.value;
@@ -109,7 +111,15 @@ export class DatabaseDashboardComponent implements OnInit, OnDestroy {
     if (selectedFaena) {
       workersForDropdowns = workersForDropdowns.filter(w => w.faenaRelacion.nombre === selectedFaena);
     }
-    this.cargosDisponibles = [...new Set(workersForDropdowns.map(w => w.cargo))].sort();
+
+    // Se utiliza un Map para obtener cargos únicos basados en su ID
+    const cargoMap = new Map<number, Cargo>();
+    workersForDropdowns.forEach(worker => {
+      if (worker.cargo) {
+        cargoMap.set(worker.cargo.id, worker.cargo);
+      }
+    });
+    this.cargosDisponibles = Array.from(cargoMap.values()).sort((a, b) => a.nombre.localeCompare(b.nombre));
   }
 
   applyFilters(): void {
@@ -122,8 +132,9 @@ export class DatabaseDashboardComponent implements OnInit, OnDestroy {
     if (faena) {
       tempWorkers = tempWorkers.filter(w => w.faenaRelacion.nombre === faena);
     }
+    // ✅ CORRECCIÓN: Se filtra por el ID del cargo
     if (cargo) {
-      tempWorkers = tempWorkers.filter(w => w.cargo === cargo);
+      tempWorkers = tempWorkers.filter(w => w.cargo?.id === Number(cargo));
     }
     if (rut) {
       tempWorkers = tempWorkers.filter(w => w.rut_pasaporte.toLowerCase().includes(rut.toLowerCase()));
@@ -202,7 +213,6 @@ export class DatabaseDashboardComponent implements OnInit, OnDestroy {
           options: {
             responsive: true,
             maintainAspectRatio: false,
-            cutout: '80%',
             plugins: {
               legend: {
                 position: 'top',
@@ -228,7 +238,8 @@ export class DatabaseDashboardComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.filterSub?.unsubscribe();
+    this.subscriptions.unsubscribe();
     this.chartInstance?.destroy();
   }
 }
+

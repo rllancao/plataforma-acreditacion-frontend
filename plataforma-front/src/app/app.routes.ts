@@ -17,6 +17,7 @@ import { superAdminGuard } from './super-admin-guard';
 import { empresaGuard } from './empresa-guard';
 import { authGuard } from './auth-guard';
 import { adminGuard } from './admin.guard';
+import {ModificarFaenaComponent} from './modificar-faena/modificar-faena';
 
 export const routes: Routes = [
   // Rutas públicas
@@ -34,6 +35,7 @@ export const routes: Routes = [
   // Rutas protegidas por adminGuard
   { path: 'admin', component: AdminDashboardComponent, canActivate: [adminGuard] },
   { path: 'admin/ingresar-faena', component: IngresarFaenaComponent, canActivate: [adminGuard] },
+  { path: 'admin/modificar-faena/:id', component: ModificarFaenaComponent, canActivate: [adminGuard] },
   { path: 'admin/ingresar-empresa', component: IngresarEmpresaComponent, canActivate: [adminGuard] },
   { path: 'admin/ingresar-trabajador', component: IngresarTrabajadorComponent, canActivate: [adminGuard] },
   { path: 'admin/database', component: DatabaseDashboardComponent, canActivate: [adminGuard] },

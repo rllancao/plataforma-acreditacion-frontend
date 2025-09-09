@@ -40,11 +40,18 @@ export interface Trabajador {
   fecha_nacimiento: string;
   genero: string;
   edad: number;
-  cargo: string;
+  cargo: Cargo;
   faenaRelacion: FaenaRelacion;
   status: string;
   documentosVencidos?: Documentos[];
   documentosPorVencer?: Documentos[];
+}
+
+export interface Cargo {
+  id: number;
+  nombre: string;
+  vacantes: number;
+  tanda: number;
 }
 
 @Injectable({
