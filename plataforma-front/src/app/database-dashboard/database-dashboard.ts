@@ -190,8 +190,8 @@ export class DatabaseDashboardComponent implements OnInit, OnDestroy {
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillStyle = 'rgb(74, 222, 128)';
-            const centerX = width / 2;
-            const centerY = height / 2;
+            const centerX = width / 1.97;
+            const centerY = height / 1.7;
             ctx.fillText(percentage, centerX, centerY);
             ctx.restore();
           }

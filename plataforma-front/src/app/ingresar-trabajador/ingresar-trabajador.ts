@@ -1,10 +1,11 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, FormControl, Validators, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, FormControl, Validators, ReactiveFormsModule, AbstractControl } from '@angular/forms';
 import { Observable } from 'rxjs';
 import { Faena, FaenaService, Cargo } from '../services/faena'; // Se importa Cargo
 import { TrabajadorService } from '../services/trabajador';
 import { VolverAtras } from '../volver-atras/volver-atras';
+import { CustomValidators } from '../../utilities/custom-validatos';
 
 @Component({
   selector: 'app-ingresar-trabajador',
@@ -67,19 +68,19 @@ export class IngresarTrabajadorComponent implements OnInit {
   ) {
     // Formulario para ingreso manual
     this.manualForm = this.fb.group({
-      nombre: ['', Validators.required],
-      rut_pasaporte: ['', Validators.required],
+      nombre: ['', [Validators.required, CustomValidators.nombreApellidoValidator()]],
+      rut_pasaporte: ['', [Validators.required, CustomValidators.rutPasaporteValidator()]],
       genero: ['', Validators.required],
-      edad: ['', Validators.required],
+      edad: [{ value: '', disabled: true }, Validators.required],
       email: ['', [Validators.required, Validators.email]],
-      telefono: ['', Validators.required],
+      telefono: ['', [Validators.required, Validators.pattern(/^9\d{8}$/)]],
       faenaId: ['', Validators.required],
-      cargo: [{ value: '', disabled: true }, Validators.required], // ✅ El campo cargo empieza deshabilitado
+      cargo: [{ value: '', disabled: true }, Validators.required],
       tipo_evaluacion: ['', Validators.required],
       sede_evaluacion: ['', Validators.required],
       fecha_atencion: ['', Validators.required],
       fecha_informe: ['', Validators.required],
-      fecha_nacimiento: ['', Validators.required],
+      fecha_nacimiento: ['', [Validators.required, CustomValidators.minAgeValidator(18)]],
       direccion: ['', Validators.required],
     });
 
@@ -96,9 +97,32 @@ export class IngresarTrabajadorComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    // ✅ Se suscribe al Observable para obtener los datos y guardarlos en el array local
-    this.faenaService.getFaenas().subscribe(data => {
-      this.faenas = data;
+    this.faenaService.getFaenas().subscribe(data => { this.faenas = data; });
+    this.onNacimientoChange(); // Se activa la escucha para calcular la edad
+  }
+  onNacimientoChange(): void {
+    this.manualForm.get('fecha_nacimiento')?.valueChanges.subscribe(value => {
+      if (value) {
+        const today = new Date();
+        // Se añade 'T00:00:00' para asegurar que la fecha se interprete en la zona horaria local
+        // y evitar problemas con fechas que cambian por un día.
+        const birthDate = new Date(value + 'T00:00:00');
+
+        let age = today.getFullYear() - birthDate.getFullYear();
+        const monthDifference = today.getMonth() - birthDate.getMonth();
+
+        // Si el mes actual es anterior al de nacimiento, o si es el mismo mes
+        // pero el día actual es anterior al día de nacimiento,
+        // significa que la persona aún no ha cumplido años este año.
+        if (monthDifference < 0 || (monthDifference === 0 && today.getDate() < birthDate.getDate())) {
+          age--;
+        }
+
+        this.manualForm.get('edad')?.setValue(age, { emitEvent: false });
+      } else {
+        // Si se borra la fecha, se borra la edad.
+        this.manualForm.get('edad')?.setValue('', { emitEvent: false });
+      }
     });
   }
 
@@ -191,6 +215,10 @@ export class IngresarTrabajadorComponent implements OnInit {
       },
       error: (err) => (this.manualMsg = err.error?.message[0] || err.error.message || 'Error al crear trabajador.'),
     });
+  }
+
+  getControl(name: string): AbstractControl | null {
+    return this.manualForm.get(name);
   }
 
   submitBulk(): void {

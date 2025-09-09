@@ -12,7 +12,6 @@ import { Documentos } from '../services/documentos';
 
 Chart.register(...registerables);
 
-// Definimos una interfaz para la estructura de datos de los nuevos gráficos
 interface CargoStats {
   nombre: string;
   tanda: number;
@@ -28,20 +27,17 @@ interface CargoStats {
   templateUrl: './dashboard.html',
 })
 export class DashboardComponent implements OnInit, OnDestroy {
-  // Iconos
   ChevronDown = ChevronDown;
   Search = Search;
   XCircle = XCircle;
   Eye = Eye;
   X = X;
-  Wrench = Wrench
+  Wrench = Wrench;
 
   selectedFaena?: Faena;
   workers: any[] = [];
   filteredWorkers: any[] = [];
   cargos: string[] = [];
-
-  // ✅ NUEVA PROPIEDAD: Almacenará los datos procesados para los gráficos de cargos
   cargoStats: CargoStats[] = [];
 
   isModalOpen = false;
@@ -50,9 +46,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   filterForm: FormGroup;
 
   private mainChartInstance?: Chart;
-  // ✅ NUEVA PROPIEDAD: Almacenará las instancias de los gráficos de cargos para poder destruirlos
   private cargoChartInstances: Chart[] = [];
-
   private routeSub?: Subscription;
   private filterSub?: Subscription;
   private platformId = inject(PLATFORM_ID);
@@ -73,6 +67,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
       estado: new FormControl(''),
     });
   }
+
   get userRole(): 'admin' | 'empresa' | 'empleado' | 'superAdmin' | null {
     return this.authService.getUserRole();
   }
@@ -86,8 +81,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
             this.selectedFaena = faena;
             this.workers = faena.trabajadores;
             this.filteredWorkers = [...this.workers];
-
-            // ✅ CORRECCIÓN: Se extrae el 'nombre' del objeto cargo para los filtros.
             this.cargos = [...new Set(this.workers.map(w => w.cargo?.nombre).filter(Boolean))];
 
             this.processCargoData();
@@ -110,7 +103,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
     ).subscribe(() => this.applyFilters());
   }
 
-  // ✅ NUEVO MÉTODO: Procesa los datos de la faena para generar las estadísticas de cada cargo
   processCargoData(): void {
     if (!this.selectedFaena || !this.selectedFaena.cargos) {
       this.cargoStats = [];
@@ -119,20 +111,16 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
     this.cargoStats = this.selectedFaena.cargos
       .map(cargo => {
-        // 1. Filtramos los trabajadores que pertenecen a ESTA tanda específica.
         const trabajadoresAsignadosAlCargo = this.workers.filter(
           worker => worker.cargo?.id === cargo.id
         );
 
-        // 2. Contamos los aprobados de ese grupo específico.
         const aprobados = trabajadoresAsignadosAlCargo.filter(
           worker => worker.status === 'Aprobado'
         ).length;
 
-        // 3. El total de vacantes es la suma de los ya asignados + los que quedan.
         const vacantesTotales = trabajadoresAsignadosAlCargo.length + cargo.vacantes;
 
-        // No mostramos el gráfico si no hay vacantes totales para esta tanda.
         if (vacantesTotales === 0) return null;
 
         return {
@@ -146,11 +134,12 @@ export class DashboardComponent implements OnInit, OnDestroy {
       .filter((stat): stat is CargoStats => stat !== null);
   }
 
-  // ✅ NUEVO MÉTODO: Crea los gráficos para cada cargo
   createCargoCharts(): void {
     if (!isPlatformBrowser(this.platformId)) return;
 
-    // Usamos setTimeout para asegurar que el DOM se haya actualizado con los nuevos <canvas>
+    this.cargoChartInstances.forEach(chart => chart.destroy());
+    this.cargoChartInstances = [];
+
     setTimeout(() => {
       this.cargoStats.forEach(stat => {
         const canvas = document.getElementById(stat.chartId) as HTMLCanvasElement;
@@ -162,13 +151,12 @@ export class DashboardComponent implements OnInit, OnDestroy {
             afterDraw: (chart: Chart) => {
               const ctx = chart.ctx;
               const { width, height } = chart;
-              // Texto a mostrar: "Aprobados / Total"
               const text = `${stat.aprobados} / ${stat.vacantesTotales}`;
               ctx.save();
               ctx.font = 'bold 16px Arial';
               ctx.textAlign = 'center';
               ctx.textBaseline = 'middle';
-              ctx.fillStyle = '#4A5568'; // Color de texto gris oscuro
+              ctx.fillStyle = '#4A5568';
               const centerX = width / 2;
               const centerY = height / 2;
               ctx.fillText(text, centerX, centerY);
@@ -179,10 +167,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
           const chart = new Chart(ctx, {
             type: 'doughnut',
             data: {
-              labels: ['Ocupadas', 'Disponibles'],
+              labels: ['Aprobados', 'Disponibles'],
               datasets: [{
                 data: [stat.aprobados, stat.vacantesTotales - stat.aprobados],
-                backgroundColor: ['rgb(74, 222, 128)', 'rgb(229, 231, 235)'], // Verde y Gris claro
+                backgroundColor: ['rgb(74, 222, 128)', 'rgb(229, 231, 235)'],
                 hoverOffset: 4,
                 borderColor: '#fff',
                 borderWidth: 2,
@@ -193,12 +181,12 @@ export class DashboardComponent implements OnInit, OnDestroy {
               responsive: true,
               maintainAspectRatio: false,
               plugins: {
-                legend: { display: false }, // Ocultamos la leyenda para ahorrar espacio
+                legend: { display: false },
                 tooltip: { enabled: true },
               }
             }
           });
-          this.cargoChartInstances.push(chart); // Guardamos la instancia para destruirla después
+          this.cargoChartInstances.push(chart);
         }
       });
     }, 0);
@@ -209,7 +197,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
     let tempWorkers = [...this.workers];
 
     if (cargo) {
-      // ✅ CORRECCIÓN: Se filtra por el nombre dentro del objeto cargo.
       tempWorkers = tempWorkers.filter(w => w.cargo?.nombre === cargo);
     }
     if (rut) {
@@ -241,7 +228,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.workerForModal = null;
   }
 
-  // Se renombra el método para mayor claridad
   updateMainChart(): void {
     if (isPlatformBrowser(this.platformId)) {
       if (this.mainChartInstance) {
@@ -251,37 +237,39 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
       const context = this.donutChart.nativeElement.getContext('2d');
       if (context) {
-        // Los conteos de estados se basan en la lista de trabajadores FILTRADOS
         const aprobados = this.filteredWorkers.filter(w => w.status === 'Aprobado').length;
         const pendientes = this.filteredWorkers.filter(w => w.status === 'Pendiente').length;
         const rechazados = this.filteredWorkers.filter(w => w.status === 'Rechazado').length;
 
-        // --- INICIO DE LA NUEVA LÓGICA ---
-        // 1. Calculamos el total de posiciones de la faena
         const totalVacantes = this.cargoStats.reduce((sum, stat) => sum + stat.vacantesTotales, 0);
-
-        // 2. Calculamos las vacantes que aún no tienen a nadie asignado
-        const totalTrabajadoresActuales = this.workers.length; // Usamos el total de trabajadores sin filtrar
+        const totalTrabajadoresActuales = this.workers.length;
         const vacantesLibres = Math.max(0, totalVacantes - totalTrabajadoresActuales);
-        // --- FIN DE LA NUEVA LÓGICA ---
 
         const centerTextPlugin = {
           id: 'centerText',
           afterDraw: (chart: Chart) => {
             const ctx = chart.ctx;
             const { width, height } = chart;
-
-            // 3. El porcentaje ahora refleja el progreso real hacia el objetivo total de contratación
             const percentage = totalVacantes > 0 ? ((aprobados / totalVacantes) * 100).toFixed(0) + '%' : '0%';
 
+            // ✅ CORRECCIÓN DE CENTRADO PRECISO
             ctx.save();
-            ctx.font = 'bold 24px Arial ';
+            const fontSize = 24;
+            const fontStyle = `bold ${fontSize}px Arial`;
+            ctx.font = fontStyle;
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillStyle = 'rgb(74, 222, 128)';
-            const centerX = width / 2;
-            const centerY = height / 2;
-            ctx.fillText(percentage, centerX, centerY);
+            const centerX = width / 1.97;
+            const centerY = height / 1.7;
+
+            // Medimos la altura real del texto para un centrado perfecto
+            const textMetrics = ctx.measureText(percentage);
+            const textHeight = textMetrics.actualBoundingBoxAscent + textMetrics.actualBoundingBoxDescent;
+
+            // Se dibuja el texto en el centro exacto del canvas
+            ctx.fillText(percentage, centerX, centerY + (textHeight / 4));
+
             ctx.restore();
           }
         };
@@ -289,17 +277,14 @@ export class DashboardComponent implements OnInit, OnDestroy {
         const chartConfig: ChartConfiguration<'doughnut'> = {
           type: 'doughnut',
           data: {
-            // 4. Añadimos "Vacantes" a las etiquetas
             labels: ['Aprobados', 'Pendientes', 'Rechazados', 'Vacantes'],
             datasets: [{
-              // 5. Añadimos el recuento de vacantes libres a los datos
               data: [aprobados, pendientes, rechazados, vacantesLibres],
-              // 6. Añadimos un color para el nuevo segmento
               backgroundColor: [
-                'rgb(74, 222, 128)',  // Aprobados (Verde)
-                'rgb(250, 204, 21)',   // Pendientes (Amarillo)
-                'rgb(248, 113, 113)',  // Rechazados (Rojo)
-                'rgb(229, 231, 235)'   // Vacantes (Gris Claro)
+                'rgb(74, 222, 128)',
+                'rgb(250, 204, 21)',
+                'rgb(248, 113, 113)',
+                'rgb(229, 231, 235)'
               ],
               hoverOffset: 4,
               borderColor: '#fff',
@@ -338,9 +323,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.routeSub?.unsubscribe();
     this.filterSub?.unsubscribe();
-    // Destruimos el gráfico principal
     this.mainChartInstance?.destroy();
-    // ✅ DESTRUIMOS TODOS LOS GRÁFICOS DE CARGOS
     this.cargoChartInstances.forEach(chart => chart.destroy());
   }
 }

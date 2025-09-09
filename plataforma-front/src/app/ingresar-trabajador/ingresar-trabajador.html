@@ -8,54 +8,115 @@
     <!-- Sección 1: Ingreso Manual -->
     <div class="rounded-lg bg-white p-6 shadow-md">
       <h2 class="text-xl font-semibold border-b pb-2">Ingreso Manual de Trabajador</h2>
-      <form [formGroup]="manualForm" (ngSubmit)="submitManual()" class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
 
-        <!-- ✅ NUEVO: Selectores de Faena y Cargo -->
+      <!-- Contenedor para el mensaje de feedback general -->
+      <div *ngIf="manualMsg" class="mt-4 p-3 rounded-md text-sm" [ngClass]="manualMsg.startsWith('Error') ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'">
+        {{ manualMsg }}
+      </div>
+
+      <form [formGroup]="manualForm" (ngSubmit)="submitManual()" class="mt-4 grid grid-cols-1 gap-x-6 gap-y-4 md:grid-cols-2" novalidate>
+
+        <!-- Faena -->
         <div>
-          <label class="block text-sm font-medium text-gray-700">Asignar a Faena</label>
-          <select formControlName="faenaId" (change)="onFaenaChange()" class="mt-1 w-full rounded-lg border border-gray-300 shadow-sm p-2">
+          <label for="faenaId" class="block text-sm font-medium text-gray-700">Asignar a Faena</label>
+          <select id="faenaId" formControlName="faenaId" (change)="onFaenaChange()" class="mt-1 w-full rounded-lg border border-gray-300 shadow-sm p-2">
             <option value="" disabled>Seleccione...</option>
             <option *ngFor="let faena of faenas" [value]="faena.id">{{ faena.nombre }}</option>
           </select>
         </div>
+
+        <!-- Cargo -->
         <div>
-          <label class="block text-sm font-medium text-gray-700">Cargo</label>
-          <select formControlName="cargo" (change)="onCargoChange()" class="mt-1 w-full rounded-lg border border-gray-300 shadow-sm p-2">
+          <label for="cargo" class="block text-sm font-medium text-gray-700">Cargo</label>
+          <select id="cargo" formControlName="cargo" (change)="onCargoChange()" class="mt-1 w-full rounded-lg border border-gray-300 shadow-sm p-2">
             <option value="">-- Seleccione un cargo --</option>
-            <!-- ✅ SE CAMBIA EL BINDING A [ngValue] Y SE MUESTRA LA TANDA -->
             <option *ngFor="let cargo of cargosDisponibles" [ngValue]="cargo.id">
               {{ cargo.nombre }} (Tanda {{ cargo.tanda }})
             </option>
           </select>
           <div *ngIf="vacantesDisponibles !== null" class="mt-2 text-sm text-gray-600">
-            Vacantes disponibles para este cargo: <strong>{{ vacantesDisponibles }}</strong>
+            Vacantes disponibles: <strong>{{ vacantesDisponibles }}</strong>
           </div>
         </div>
 
-        <!-- Campos de Información Personal -->
-        <div><label class="block text-sm font-medium text-gray-700">Nombre Completo</label><input formControlName="nombre" class="mt-1 w-full rounded-lg border border-gray-300 shadow-sm p-2"></div>
+        <!-- Nombre Completo -->
+        <div>
+          <label for="nombre" class="block text-sm font-medium text-gray-700">Nombre Completo</label>
+          <input id="nombre" formControlName="nombre" class="mt-1 w-full rounded-lg border border-gray-300 shadow-sm p-2">
+          <div *ngIf="getControl('nombre')?.invalid && (getControl('nombre')?.dirty || getControl('nombre')?.touched)" class="text-red-600 text-xs mt-1">
+            <div *ngIf="getControl('nombre')?.errors?.['required']">El nombre es requerido.</div>
+            <div *ngIf="getControl('nombre')?.errors?.['nombreIncompleto']">{{ getControl('nombre')?.errors?.['nombreIncompleto'] }}</div>
+            <div *ngIf="getControl('nombre')?.errors?.['nombreCorto']">{{ getControl('nombre')?.errors?.['nombreCorto'] }}</div>
+          </div>
+        </div>
+
+        <!-- RUT / Pasaporte -->
+        <div>
+          <label for="rut_pasaporte" class="block text-sm font-medium text-gray-700">RUT / Pasaporte</label>
+          <input id="rut_pasaporte" formControlName="rut_pasaporte" class="mt-1 w-full rounded-lg border border-gray-300 shadow-sm p-2">
+          <div *ngIf="getControl('rut_pasaporte')?.invalid && (getControl('rut_pasaporte')?.dirty || getControl('rut_pasaporte')?.touched)" class="text-red-600 text-xs mt-1">
+            <div *ngIf="getControl('rut_pasaporte')?.errors?.['required']">El RUT o pasaporte es requerido.</div>
+            <div *ngIf="getControl('rut_pasaporte')?.errors?.['formatoInvalido']">{{ getControl('rut_pasaporte')?.errors?.['formatoInvalido'] }}</div>
+          </div>
+        </div>
+
+        <!-- Fecha de Nacimiento -->
+        <div>
+          <label for="fecha_nacimiento" class="block text-sm font-medium text-gray-700">Fecha de Nacimiento</label>
+          <input id="fecha_nacimiento" formControlName="fecha_nacimiento" type="date" class="mt-1 w-full rounded-lg border border-gray-300 shadow-sm p-2">
+          <div *ngIf="getControl('fecha_nacimiento')?.invalid && (getControl('fecha_nacimiento')?.dirty || getControl('fecha_nacimiento')?.touched)" class="text-red-600 text-xs mt-1">
+            <div *ngIf="getControl('fecha_nacimiento')?.errors?.['required']">La fecha es requerida.</div>
+            <div *ngIf="getControl('fecha_nacimiento')?.errors?.['edadMinima']">{{ getControl('fecha_nacimiento')?.errors?.['edadMinima'] }}</div>
+            <div *ngIf="getControl('fecha_nacimiento')?.errors?.['fechaFutura']">{{ getControl('fecha_nacimiento')?.errors?.['fechaFutura'] }}</div>
+          </div>
+        </div>
+
+        <!-- Edad -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Edad</label>
+          <input formControlName="edad" type="number" class="mt-1 w-full rounded-lg border border-gray-300 shadow-sm p-2 bg-gray-100 cursor-not-allowed">
+        </div>
+
+        <!-- Email -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Email</label>
+          <input formControlName="email" type="email" class="mt-1 w-full rounded-lg border border-gray-300 shadow-sm p-2">
+          <div *ngIf="getControl('email')?.invalid && (getControl('email')?.dirty || getControl('email')?.touched)" class="text-red-600 text-xs mt-1">
+            <div *ngIf="getControl('email')?.errors?.['required']">El email es requerido.</div>
+            <div *ngIf="getControl('email')?.errors?.['email']">El formato del email es incorrecto.</div>
+          </div>
+        </div>
+
+        <!-- Teléfono -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Teléfono</label>
+          <input formControlName="telefono" type="number" class="mt-1 w-full rounded-lg border border-gray-300 shadow-sm p-2" placeholder="9xxxxxxxx">
+          <div *ngIf="getControl('telefono')?.invalid && (getControl('telefono')?.dirty || getControl('telefono')?.touched)" class="text-red-600 text-xs mt-1">
+            <div *ngIf="getControl('telefono')?.errors?.['required']">El teléfono es requerido.</div>
+            <div *ngIf="getControl('telefono')?.errors?.['pattern']">Debe tener 9 dígitos y empezar con 9.</div>
+          </div>
+        </div>
+
+        <!-- Género -->
         <div><label class="block text-sm font-medium text-gray-700">Género</label>
           <select formControlName="genero" class="mt-1 w-full rounded-lg border border-gray-300 shadow-sm p-2">
             <option value="" disabled>Seleccione...</option>
-            <option value ="Masculino"> Masculino </option>
-            <option value ="Femenino"> Femenino </option>
-          </select></div>
-        <div><label class="block text-sm font-medium text-gray-700">Dirección</label><input formControlName="direccion" class="mt-1 w-full rounded-lg border border-gray-300 shadow-sm p-2"></div>
-        <div><label class="block text-sm font-medium text-gray-700">Edad</label><input formControlName="edad" type="number" class="mt-1 w-full rounded-lg border border-gray-300 shadow-sm p-2"></div>
-        <div><label class="block text-sm font-medium text-gray-700">RUT / Pasaporte</label><input formControlName="rut_pasaporte" class="mt-1 w-full rounded-lg border border-gray-300 shadow-sm p-2"></div>
-        <div><label class="block text-sm font-medium text-gray-700">Email</label><input formControlName="email" type="email" class="mt-1 w-full rounded-lg border border-gray-300 shadow-sm p-2"></div>
-        <div><label class="block text-sm font-medium text-gray-700">Teléfono</label><input formControlName="telefono" type="number" class="mt-1 w-full rounded-lg border border-gray-300 shadow-sm p-2"></div>
+            <option value="Masculino">Masculino</option>
+            <option value="Femenino">Femenino</option>
+          </select>
+        </div>
 
+        <!-- Dirección -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Dirección</label>
+          <input formControlName="direccion" class="mt-1 w-full rounded-lg border border-gray-300 shadow-sm p-2">
+        </div>
+
+        <!-- Centro de Atención -->
         <div class="relative">
           <label class="block text-sm font-medium text-gray-700">Centro de Atención</label>
-          <button
-            type="button"
-            (click)="toggleSedeDropdown()"
-            class="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-left shadow-sm"
-          >
-            <span class="block truncate">
-              {{ manualForm.get('sede_evaluacion')?.value || 'Seleccione...' }}
-            </span>
+          <button type="button" (click)="toggleSedeDropdown()" class="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-left shadow-sm">
+            <span class="block truncate">{{ manualForm.get('sede_evaluacion')?.value || 'Seleccione...' }}</span>
           </button>
           <div *ngIf="isSedeDropdownOpen" class="absolute z-10 mt-1 w-full rounded-md bg-white shadow-lg">
             <ul class="max-h-48 overflow-auto rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
@@ -65,19 +126,26 @@
             </ul>
           </div>
         </div>
-        <div><label class="block text-sm font-medium text-gray-700">Tipo de Evaluación</label>
+
+        <!-- Tipo de Evaluación -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Tipo de Evaluación</label>
           <select formControlName="tipo_evaluacion" class="mt-1 w-full rounded-lg border border-gray-300 shadow-sm p-2">
             <option value="" disabled>Seleccione...</option>
-            <option value ="Pre Ocupacional"> Pre Ocupacional </option>
-            <option value ="Ocupacional"> Ocupacional </option>
-          </select></div>
-        <div><label class="block text-sm font-medium text-gray-700">Fecha de Atención</label><input formControlName="fecha_atencion" type="date" class="mt-1 w-full rounded-lg border border-gray-300 shadow-sm p-2"></div>
-        <div><label class="block text-sm font-medium text-gray-700">Fecha de Informe</label><input formControlName="fecha_informe" type="date" class="mt-1 w-full rounded-lg border border-gray-300 shadow-sm p-2"></div>
-        <div><label class="block text-sm font-medium text-gray-700">Fecha de Nacimiento</label><input formControlName="fecha_nacimiento" type="date" class="mt-1 w-full rounded-lg border border-gray-300 shadow-sm p-2"></div>
+            <option value="Pre Ocupacional">Pre Ocupacional</option>
+            <option value="Ocupacional">Ocupacional</option>
+          </select>
+        </div>
 
+        <!-- Fecha de Atención -->
+        <div><label class="block text-sm font-medium text-gray-700">Fecha de Atención</label><input formControlName="fecha_atencion" type="date" class="mt-1 w-full rounded-lg border border-gray-300 shadow-sm p-2"></div>
+
+        <!-- Fecha de Informe -->
+        <div><label class="block text-sm font-medium text-gray-700">Fecha de Informe</label><input formControlName="fecha_informe" type="date" class="mt-1 w-full rounded-lg border border-gray-300 shadow-sm p-2"></div>
+
+        <!-- Botón de Envío -->
         <div class="md:col-span-2">
-          <p *ngIf="manualMsg" class="text-sm" [ngClass]="{'text-green-600': !manualMsg.startsWith('Error'), 'text-red-600': manualMsg.startsWith('Error')}">{{ manualMsg }}</p>
-          <button type="submit" [disabled]="manualForm.invalid" class="rounded-lg bg-indigo-600 px-4 py-2 text-white disabled:opacity-50">Guardar Trabajador</button>
+          <button type="submit" [disabled]="manualForm.invalid" class="w-full rounded-lg bg-indigo-600 px-4 py-2 text-white disabled:opacity-50 disabled:cursor-not-allowed">Guardar Trabajador</button>
         </div>
       </form>
     </div>
